@@ -7,7 +7,9 @@ using namespace std;
 
 void foo(int)
 {
-    cout << __PRETTY_FUNCTION__ << _LINE_ << endl;
+    cout << __LINE__ << endl;
+    cout << __PRETTY_FUNCTION__ << endl;
+    cout << __LINE__ << endl;
 }
 
 
