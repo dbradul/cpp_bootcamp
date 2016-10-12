@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
     cout << "=======================" << endl;
     {
         char * foo = "hello";
-        char * foo2 = new char[2000];
+        char * foo2 = new char[strlen(foo)+1];
         char * foo3 = new char;
 
         int len = strlen(foo);
