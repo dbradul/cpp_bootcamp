@@ -21,6 +21,20 @@ void print_array(int _2darray[ROWS][COLUMNS])
 }
 
 
+template<int N, int M>
+void print_array(int _2darray[N][M])
+{
+    for (int i = 0; i < N; i++)
+    {
+        for (int j = 0; j < M; j++)
+        {
+            cout << _2darray[i][j] << "\t";
+        }
+        cout << endl;
+    }
+}
+
+
 void print_array_arithmetics(int _2darray[ROWS][COLUMNS])
 {
     for (int i = 0; i < ROWS; i++)
@@ -46,7 +60,22 @@ void print_array(int** _2darray, int num_rows, int num_columns)
     }
 }
 
-const int alphabet_length = 'z'-'a';
+template<int N>
+void rotate(int _2darray[N][N])
+{
+    for (int i = 0; i < N/2; i++)
+    {
+        for (int j = N-i-1; j > i; j--)
+        {
+            swap(_2darray[i][j],         _2darray[N-j-1][i]);
+            swap(_2darray[N-j-1][i],     _2darray[N-i-1][N-j-1]);
+            swap(_2darray[N-i-1][N-j-1], _2darray[j][N-i-1]);
+        }
+    }
+}
+
+const int ALPHABET_LENGTH = 'z'-'a';
+
 int char2idx(char c)
 {
     int idx = 0;
@@ -56,7 +85,7 @@ int char2idx(char c)
     }
     else if (c>='A' && c<='Z')
     {
-        idx = alphabet_length + (c-'A');
+        idx = ALPHABET_LENGTH + (c-'A');
     }
 
     return idx;
@@ -65,7 +94,7 @@ int char2idx(char c)
 void count(const char* str)
 {
     size_t n = strlen(str);
-    const int NUM_OF_SYMBOLS = alphabet_length*2;
+    const int NUM_OF_SYMBOLS = ALPHABET_LENGTH*2;
 
     int count_array[NUM_OF_SYMBOLS] = {0};
 
@@ -85,6 +114,24 @@ void count(const char* str)
 
 int main(int argc, char *argv[])
 {
+    {
+        const int dim1 = 5;
+        const int dim2 = 5;
+        int x[dim1][dim2] = {  {1, 2, 3, 4, 5},
+                               {6, 7, 8, 9, 10},
+                               {11,12,13,14,15},
+                               {16,17,18,19,20},
+                               {21,22,23,24,25},
+                            };
+
+        print_array<5,5>(x);
+        cout << endl;
+        rotate(x);
+        print_array<5,5>(x);
+    }
+
+    return 0;
+
     {
         int x[ROWS][COLUMNS] = {{1,2,3},{4,5,6}};
 
