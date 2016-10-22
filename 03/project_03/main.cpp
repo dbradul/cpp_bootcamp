@@ -117,11 +117,11 @@ int main(int argc, char *argv[])
     {
         const int dim1 = 5;
         const int dim2 = 5;
-        int x[dim1][dim2] = {  {1, 2, 3, 4, 5},
-                               {6, 7, 8, 9, 10},
-                               {11,12,13,14,15},
-                               {16,17,18,19,20},
-                               {21,22,23,24,25},
+        int x[][dim2] = {  {1, 2, 3, 4, 5},
+                           {6, 7, 8, 9, 10},
+                           {11,12,13,14,15},
+                           {16,17,18,19,20},
+                           {21,22,23,24,25},
                             };
 
         print_array<5,5>(x);
@@ -204,7 +204,6 @@ int main(int argc, char *argv[])
 
         cout << "elapsed[j,i]: " << elapsed << endl;
     }
-
 
     {
         struct student

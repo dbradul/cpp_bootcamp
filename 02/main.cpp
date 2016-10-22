@@ -14,6 +14,12 @@ void func2(int* pointer)
     pointer++;
 }
 
+void setNull(int*& pointer)
+{
+    //free(pointer);
+    pointer = nullptr;
+}
+
 
 
 #define ARRAY_SIZE(a) (sizeof(a)/sizeof(a[0]))
@@ -22,7 +28,10 @@ int main(int argc, char *argv[])
 {
     cout << "=======================" << endl;
     int myvar = 25;
+
     int* foo = &myvar;
+    cout << "!!!!!!!!!foo: " << foo << endl;
+
     int bar = *foo;
 
     bar++;
@@ -51,22 +60,6 @@ int main(int argc, char *argv[])
     cout << cp+1 << endl;
 
     cout << "=======================" << endl;
-    int p[] = {1,2,3};
-
-    cout << &p[0] << endl;
-    cout << p << endl;
-
-    cout << p[1] << endl;
-    cout << *(p+1) << endl;
-
-    cout << ++(*p) << endl;
-    cout << (*p)++ << endl;
-    cout << p[0] << endl;
-
-
-    cout << *(p) << endl;
-
-    cout << "=======================" << endl;
     {
         int x;
               int *       p1 = &x;
@@ -88,10 +81,29 @@ int main(int argc, char *argv[])
     }
 
     cout << "=======================" << endl;
-    {
-        char* foo = "hello";
-        char foo2[] = "hello";
+    int p[] = {1,2,3};
 
+//    cout << p << endl;
+//    cout << &p[0] << endl;
+
+    cout << p[1] << endl;
+    cout << *(p+1) << endl;
+
+    cout << p[1] << endl;
+    cout << *(p+1) << endl;
+
+    cout << ++(*p) << endl;
+    cout << (*p)++ << endl;
+    cout << p[0] << endl;
+
+    cout << *(p) << endl;
+
+
+    cout << "=======================" << endl;
+    {
+        //char foo2[] = {'h', 'e', 'l', 'l', 'o', '\0', 'W'};
+        char foo2[] = "hello";
+        char* foo = "hello";
         char foo3[10] = {0};
 
         cout << foo[0] << endl;
@@ -101,7 +113,7 @@ int main(int argc, char *argv[])
         cout << "ARRAY_SIZE: " << ARRAY_SIZE(foo2) << endl;
         cout << "ARRAY_SIZE: " << ARRAY_SIZE(foo3) << endl;
 
-        //foo[0] = 'H';
+        ////foo[0] = 'H';
         foo2[0] = 'H';
         cout << "passed" << endl;
 
@@ -114,11 +126,22 @@ int main(int argc, char *argv[])
 
     cout << "=======================" << endl;
     {
-        char * foo = "hello";
+        char foo[] = "hello";
         char * foo2 = strdup(foo);
+
+        foo[0] = 'H';
+
+        cout << foo << endl;
+        cout << foo2 << endl;
 
         cout << foo << ", len:" << strlen(foo) << endl;
         cout << foo2 << ", len:" << strlen(foo2) << endl;
+
+//        int* value = new int(5);
+//        delete value;
+
+//        int* value = new int[5];
+//        delete[] value;
 
         free(foo2);
     }
@@ -165,10 +188,12 @@ int main(int argc, char *argv[])
         int * foo = &value;
 
         cout << "foo: " << foo << endl;
-        func(&foo);
+        setNull(foo);
         cout << "foo: " << foo << endl;
-        func2(foo);
-        cout << "foo: " << foo << endl;
+//        func(&foo);
+//        cout << "foo: " << foo << endl;
+//        func2(foo);
+//        cout << "foo: " << foo << endl;
     }
 
     cout << "=======================" << endl;
@@ -188,5 +213,25 @@ int main(int argc, char *argv[])
         int array[100] = {0};
         array[c] = 42;
     }
+
+    cout << "=======================" << endl;
+    {
+        wchar_t wc = 'ы';
+        char c = 'a';
+        int i = wc;
+
+        cout << WCHAR_MIN << endl;
+        cout << WCHAR_MAX << endl;
+        cout << "wc: " << wc << endl;
+        cout << "c: " << c << endl;
+        cout << "i: " << i << endl;
+
+        i++;
+        wc = i;
+
+        cout << "c: " << wc << endl;
+        cout << "i: " << i << endl;
+    }
+
     return 0;
 }

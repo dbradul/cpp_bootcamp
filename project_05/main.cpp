@@ -128,8 +128,8 @@ int next()
 
 int a_var = 10;
 extern int b_var;
-//static int auto c_var = 10;
-//static extern int d_var = 10;
+//static int auto c_var = 10;   // CONFLICTING SPECIFIERS!
+//static extern int d_var = 10; // CONFLICTING SPECIFIERS!
 void project_05_foo_global();
 void project_05_foo_local();
 

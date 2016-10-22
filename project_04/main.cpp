@@ -9,7 +9,7 @@ struct student_t
     unsigned short gpa;
 };
 
-void print_student(student_t* student)
+void student_print(student_t* student)
 {
     cout << "name: " << student->name
          << ", gpa:" << student->gpa << endl;
@@ -18,12 +18,12 @@ void print_student(student_t* student)
 void process_student(student_t& student)
 {
     cout << "BEFORE: " << endl;
-    print_student(&student);
+    student_print(&student);
 
     student.gpa *= 1.1;
 
     cout << "AFTER: " << endl;
-    print_student(&student);
+    student_print(&student);
 }
 
 void init_students(student_t* students, size_t num_students)
@@ -40,7 +40,7 @@ void print_students(student_t* students, size_t num_students)
 {
     for (int i =0; i<num_students; i++)
     {
-        print_student(&students[i]);
+        student_print(&students[i]);
     }
 }
 
@@ -110,6 +110,16 @@ int do_action(op operation, int a, int b)
     return operation(a, b);
 }
 
+int bar()
+{
+    return 42;
+}
+
+int foo()
+{
+    bar();
+}
+
 //-----------------------------------------------------------
 //
 int main(int argc, char* argv[])
@@ -176,7 +186,7 @@ int main(int argc, char* argv[])
         cout << "==============================" << endl;
         union S
         {
-            int n;      // 4 bytes
+            unsigned int n;      // 4 bytes
             float f;    // 4 bytes
             char c;     // 1 byte
         };              //  = total 4 bytes
@@ -186,8 +196,23 @@ int main(int argc, char* argv[])
         cout << "s.f = " << s.f << endl;
         s.n = 0xffffffff;
         cout << "s.f = " << s.f << endl;
-        s.f = 42.0;
+        s.n = 4286578688;///2
+        cout << "s.f = " << s.f << endl;
+        s.n = 4286578688/2;///2
+        cout << "s.f = " << s.f << endl;
+        s.n = 2139095040;
+        cout << "s.f = " << s.f << endl;
+        s.f = -5;
         cout << "s.n = " << s.n << endl;
+        s.f = 0.1;
+        cout << "s.n (0.1) = " << s.n << endl;
+        s.f = 0.15625;
+        cout << "s.n (0.1) = " << s.n << endl;
+
+        cout << "float 1./0 = " << 1./0 << endl;
+        cout << "float -1./0 = " << -1./0 << endl;
+        cout << "float 1/-1./0 = " << 1/(-1./0) << endl;
+        cout << "float -1/-1./0 = " << -1/(-1./0) << endl;
     }
 
     {

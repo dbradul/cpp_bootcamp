@@ -7,9 +7,7 @@ using namespace std;
 
 void foo(int)
 {
-    cout << __LINE__ << endl;
     cout << __PRETTY_FUNCTION__ << endl;
-    cout << __LINE__ << endl;
 }
 
 
@@ -17,6 +15,7 @@ void foo(unsigned int)
 {
     cout << __PRETTY_FUNCTION__ << endl;
 }
+
 
 void foo(float)
 {
@@ -49,12 +48,18 @@ int main()
 
     std::cout << sizeof(char) << endl;
     std::cout << sizeof(short) << endl;
+
     std::cout << sizeof(int) << endl;
     std::cout << sizeof(unsigned int) << endl;
 
-    cout << numeric_limits<int>::max()+1 << endl;
-    cout << numeric_limits<int>::min() << endl;
-    cout << numeric_limits<unsigned int>::max() << endl;
+
+    cout << "==========================" << endl;
+
+    cout << numeric_limits<int>::max() << endl;
+    cout << numeric_limits<int>::min()-1 << endl;
+
+    cout << numeric_limits<unsigned int>::max()+1 << endl;
+    cout << numeric_limits<unsigned int>::min() << endl;
 
     cout << 0u-1 << endl;
     cout << numeric_limits<unsigned int>::min()-1 << endl;
@@ -83,8 +88,13 @@ int main()
     cout << std::numeric_limits<double>::max_exponent << endl;
     cout << std::numeric_limits<double>::min_exponent << endl;
 
-    cout << ((double_equals(0.9, 1.4-0.2-0.3)) ? "TRUE" : "FALSE") << endl;
+    //cout << ((double_equals(0.9, 1.4-0.2-0.3)) ? "TRUE" : "FALSE") << endl;
+
     ////for(double d = 0; d != 0.3; d += 0.1);
+
+    ///
+    ///
+
     cout << ((0.9==1.4-0.3-0.2) ? "TRUE" : "FALSE") << endl;
 
     cout << "==========================" << endl;
@@ -94,6 +104,7 @@ int main()
     cout << (2<<2) << endl;
     cout << (20 & 1) << endl;
     cout << (21 & 1) << endl;
+    cout << (22 & 1) << endl;
 
 
     cout << "==========================" << endl;
