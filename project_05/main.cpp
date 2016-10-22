@@ -152,6 +152,9 @@ int main(int argc, char *argv[])
     person1->print_func(person1);
     person2->print_func(person2);
 
+    delete person1;
+    delete person2;
+
     {
         foo(1);
         foo(1.);
