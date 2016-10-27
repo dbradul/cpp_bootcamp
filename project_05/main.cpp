@@ -7,11 +7,21 @@ struct person_t;
 
 typedef void (*init_ptr_t)(person_t*);
 typedef void (*print_ptr_t)(person_t*);
+typedef void (*print2_ptr_t)(person_t*);
+typedef void (*print3_ptr_t)(person_t*);
 
 enum PersonType
 {
     STUDENT,
-    PROFESSOR
+    PROFESSOR,
+    INSTRUCTOR
+};
+
+struct vtable_t
+{
+    print_ptr_t print_func;
+//    print2_ptr_t print2_func;
+//    print3_ptr_t print3_func;
 };
 
 struct person_t
@@ -19,19 +29,35 @@ struct person_t
     char name[30];
     unsigned short age;
     init_ptr_t init_func;
-    print_ptr_t print_func;
+    vtable_t* vtable;
 };
 
 struct student_t
 {
     person_t base;
+    vtable_t* vtable;
     unsigned short gpa;
+};
+
+struct professor2_t
+{
+    person_t base;
+    vtable_t* vtable;
+    unsigned short salary;
 };
 
 struct professor_t
 {
-    person_t base;
-    unsigned short salary;
+    professor2_t base;
+    vtable_t* vtable;
+    unsigned short quote_rank;
+};
+
+struct instructor_t
+{
+    professor2_t base;
+    vtable_t* vtable;
+    unsigned short schedule_hours;
 };
 
 void student_print(person_t* entity)
@@ -40,35 +66,54 @@ void student_print(person_t* entity)
     cout << "I'm student. GPA=" << student->gpa << endl;
 }
 
+
 void professor_print(person_t* entity)
 {
-    professor_t* professor = (professor_t*)entity;
+    professor2_t* professor = (professor2_t*)entity;
     cout << "I'm professor. salary=" << professor->salary << endl;
 }
 
-void person_init(person_t* entity)
+void person_init(person_t* thiz)
 {
-    entity->age = 0;
-    strcpy(entity->name, "<Unknown name>");
+    /*<><><><><><><><*/
+    vtable_t* vptr = new vtable_t;
+    thiz->vtable = vptr;
+    thiz->vtable->print_func = NULL; // pure function
+    /*<><><><><><><><*/
+
+    thiz->age = 0;
+    strcpy(thiz->name, "<Unknown name>");
     cout << "I'm pure person" << endl;
 }
 
-void student_init(person_t* entity)
+void student_init(student_t* thiz)
 {
-    student_t* student = (student_t*)entity;
     cout << "Student init" << endl;
-    student->base.age = 19;
-    strcpy(student->base.name, "Vasyl");
-    student->gpa = 4.0;
+
+    /*<><><><><><><><*/
+    vtable_t* vptr = new vtable_t;
+    thiz->vtable = vptr;
+    thiz->vtable->print_func = student_print;
+    /*<><><><><><><><*/
+
+    thiz->base.age = 19;
+    strcpy(thiz->base.name, "Vasyl");
+    thiz->gpa = 4.0;
 }
 
-void professor_init(person_t* entity)
+void professor_init(professor2_t* thiz)
 {
-    professor_t* professor = (professor_t*)entity;
     cout << "Professor init" << endl;
-    professor->base.age = 42;
-    strcpy(professor->base.name, "Vasyl Vasylevich");
-    professor->salary = 100.0;
+
+    /*<><><><><><><><*/
+    vtable_t* vptr = new vtable_t;
+    thiz->vtable = vptr;
+    thiz->vtable->print_func = professor_print;
+    /*<><><><><><><><*/
+
+    thiz->base.age = 42;
+    strcpy(thiz->base.name, "Vasyl Vasylevich");
+    thiz->salary = 100.0;
 }
 
 person_t* create(PersonType type)
@@ -78,20 +123,25 @@ person_t* create(PersonType type)
     switch (type)
     {
         case STUDENT:
-            pEntity = (person_t*)(void*) new student_t;
-            pEntity->init_func = student_init;
-            pEntity->print_func = student_print;
+        {
+            student_t* student = new student_t;
+            student_init(student);
+            pEntity = (person_t*)(void*) student;
             break;
+        }
+
         case PROFESSOR:
-            pEntity = (person_t*)(void*) new professor_t;
-            pEntity->init_func = professor_init;
-            pEntity->print_func = professor_print;
+        {
+            professor2_t* professor = new professor2_t;
+            professor_init(professor);
+            pEntity = (person_t*)(void*) professor;
             break;
+        }
         default:
             cout << "Undefined entity type" << endl;
     }
 
-    pEntity->init_func(pEntity);
+//    pEntity->init_func(pEntity);
 
     return pEntity;
 }
@@ -149,8 +199,8 @@ int main(int argc, char *argv[])
     cout << "age: " << person1->age << " name: " << person1->name << endl;
     cout << "age: " << person2->age << " name: " << person2->name << endl;
 
-    person1->print_func(person1);
-    person2->print_func(person2);
+    person1->vtable->print_func(person1);
+    person2->vtable->print_func(person2);
 
     delete person1;
     delete person2;
