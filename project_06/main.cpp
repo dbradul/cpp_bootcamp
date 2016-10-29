@@ -136,7 +136,7 @@ public:
         member2 = 45;
     }
 
-    ~Person()
+    virtual ~Person()
     {
         cout << __PRETTY_FUNCTION__ << endl;
     }
@@ -306,6 +306,12 @@ int main()
         {
             arr[i]->print();
         }
+
+        for (int i =0; i<ARRAY_SIZE(arr); ++i)
+        {
+            delete arr[i];
+        }
+
     }
 
 }

@@ -75,11 +75,11 @@ void professor_print(person_t* entity)
 
 void person_init(person_t* thiz)
 {
-    /*<><><><><><><><*/
+    /* >>> VTable construction START >>> */
     vtable_t* vptr = new vtable_t;
     thiz->vtable = vptr;
     thiz->vtable->print_func = NULL; // pure function
-    /*<><><><><><><><*/
+    /* <<< VTable construction END <<< */
 
     thiz->age = 0;
     strcpy(thiz->name, "<Unknown name>");
@@ -88,13 +88,15 @@ void person_init(person_t* thiz)
 
 void student_init(student_t* thiz)
 {
+    person_init((person_t*) thiz);
+
     cout << "Student init" << endl;
 
-    /*<><><><><><><><*/
+    /* >>> VTable construction START >>> */
     vtable_t* vptr = new vtable_t;
     thiz->vtable = vptr;
     thiz->vtable->print_func = student_print;
-    /*<><><><><><><><*/
+    /* <<< VTable construction END <<< */
 
     thiz->base.age = 19;
     strcpy(thiz->base.name, "Vasyl");
@@ -103,13 +105,15 @@ void student_init(student_t* thiz)
 
 void professor_init(professor2_t* thiz)
 {
+    person_init((person_t*) thiz);
+
     cout << "Professor init" << endl;
 
-    /*<><><><><><><><*/
+    /* >>> VTable construction START >>> */
     vtable_t* vptr = new vtable_t;
     thiz->vtable = vptr;
     thiz->vtable->print_func = professor_print;
-    /*<><><><><><><><*/
+    /* <<< VTable construction END <<< */
 
     thiz->base.age = 42;
     strcpy(thiz->base.name, "Vasyl Vasylevich");
