@@ -143,33 +143,31 @@ int main()
     }
     cout << endl;
 
+
     cout << "==========================" << endl;
 
+    long l;
+    std::cin >> l;
 
+    float f;
+    std::cin >> f;
 
-//    int i;
-//    std::cin >> i;
-//    if (std::cin.fail())
-//    {
-//        std::cout << "Error" << std::endl;
-//    }
+    double d;
+    std::cin >> d;
 
-//    if (!std::cin)
-//    {
-//        std::cout << "Error2" << std::endl;
-//    }
+    std::cout << l << ", " << f << ", " << d << std::endl;
 
-//    //cin.ignore(100);
+    std::cout << std::endl;
 
-//    long l;
-//    std::cin >> l;
+    int i;
+    while (!(std::cin >> i))
+    {
+        cin.clear();
+        std::string ignoreLine; //read the invalid input into it
+        std::getline(cin, ignoreLine); //read the line till next space
 
-//    float f;
-//    std::cin >> f;
-
-//    double d;
-//    std::cin >> d;
-
-//    std::cout << i << ", " << l << ", " << f << ", " << d << std::endl;
+        std::cout << "Error: " << ignoreLine << std::endl;
+    }
+    cout << "Valid: " << i << endl;
 }
 
