@@ -7,7 +7,6 @@ const int ROWS = 2;
 const int COLUMNS = 3;
 
 
-
 void print_array(int _2darray[ROWS][COLUMNS])
 {
     for (int i = 0; i < ROWS; i++)
@@ -206,6 +205,7 @@ int main(int argc, char *argv[])
     }
 
     {
+        // padding
         struct student
         {
             char name[20];

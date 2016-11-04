@@ -74,7 +74,11 @@ int main(int argc, char* argv[])
 
     foo(1);
     foo(1u);
+    foo(1.);
+    foo(1.f);
 
+
+    std::cout << sizeof(int32_t) << endl;
     std::cout << sizeof(long) << endl;
     std::cout << sizeof(long long) << endl;
     std::cout << sizeof(float) << endl;
@@ -93,6 +97,7 @@ int main(int argc, char* argv[])
     cout << std::numeric_limits<double>::epsilon() << endl;
     cout << std::numeric_limits<double>::radix << endl;
     cout << std::numeric_limits<double>::digits << endl;
+    cout << std::numeric_limits<double>::digits10 << endl;
     cout << std::numeric_limits<double>::max_exponent << endl;
     cout << std::numeric_limits<double>::min_exponent << endl;
 
@@ -190,28 +195,28 @@ int main(int argc, char* argv[])
 
     cout << "==========================" << endl;
 
-    long l;
-    std::cin >> l;
+//    long l;
+//    std::cin >> l;
 
-    float f;
-    std::cin >> f;
+//    float f;
+//    std::cin >> f;
 
-    double d;
-    std::cin >> d;
+//    double d;
+//    std::cin >> d;
 
-    std::cout << l << ", " << f << ", " << d << std::endl;
+//    std::cout << l << ", " << f << ", " << d << std::endl;
 
-    std::cout << std::endl;
+//    std::cout << std::endl;
 
-    int i;
-    while (!(std::cin >> i))
-    {
-        cin.clear();
-        std::string ignoreLine; //read the invalid input into it
-        std::getline(cin, ignoreLine); //read the line till next space
+//    int i;
+//    while (!(std::cin >> i))
+//    {
+//        cin.clear();
+//        std::string ignoreLine; //read the invalid input into it
+//        std::getline(cin, ignoreLine); //read the line till next space
 
-        std::cout << "Error: " << ignoreLine << std::endl;
-    }
-    cout << "Valid: " << i << endl;
+//        std::cout << "Error: " << ignoreLine << std::endl;
+//    }
+//    cout << "Valid: " << i << endl;
 }
 

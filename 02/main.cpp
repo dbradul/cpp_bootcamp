@@ -30,18 +30,14 @@ int main(int argc, char *argv[])
     int myvar = 25;
 
     int* foo = &myvar;
-    cout << "!!!!!!!!!foo: " << foo << endl;
-
     int bar = *foo;
 
     bar++;
-    (*foo)++;
 
     cout << "bar: " << bar << endl;
     cout << "myvar: " << myvar << endl;
 
     int* foo2 = foo;
-
     (*foo2)++;
 
     cout << "myvar: " << myvar << endl;
@@ -81,27 +77,71 @@ int main(int argc, char *argv[])
     }
 
     cout << "=======================" << endl;
-    int p[] = {1,2,3};
+    {
+        int p[] = {1,2,3};
 
-//    cout << p << endl;
-//    cout << &p[0] << endl;
+        cout << p << endl;
+        cout << &p[0] << endl;
 
-    cout << p[1] << endl;
-    cout << *(p+1) << endl;
 
-    cout << p[1] << endl;
-    cout << *(p+1) << endl;
+        cout << p[1] << endl;
+        cout << *(p+1) << endl;
 
-    cout << ++(*p) << endl;
-    cout << (*p)++ << endl;
-    cout << p[0] << endl;
+        cout << p[1] << endl;
+        cout << 1[p] << endl;
 
-    cout << *(p) << endl;
+        int n=1;
+        cout << *(p+n) << endl;
+
+
+        cout << ++(*p) << endl;
+        cout << (*p)++ << endl;
+        cout << p[0] << endl;
+
+        cout << *(p) << endl;
+    }
+
+    cout << "=======================" << endl;
+    {
+        int p[] = {1,2,3};
+        int p2[3] = {1,2,3};
+        int p3[3];
+        int p4[3] = {1};
+        cout << p4[1] << endl;
+        cout << "ARRAY_SIZE: " << ARRAY_SIZE(p4) << endl;
+    }
 
 
     cout << "=======================" << endl;
     {
-        //char foo2[] = {'h', 'e', 'l', 'l', 'o', '\0', 'W'};
+        int* p = new int;
+        int* p2 = new int();
+        int* p3 = new int(42);
+        int* p4 = new int[42];
+
+        cout << "p: " << p << ", *p=" << *p << endl;
+        cout << "p2: " << p2 << ", *p2=" << *p2 << endl;
+        cout << "p3: " << p3 << ", *p3=" << *p3 << endl;
+        cout << "p4: " << p4 << ", *p4=" << *p4 << endl;
+
+        // ERROR!?
+        delete p;
+        delete p2;
+        delete p3;
+        delete p4;
+    }
+
+    cout << "========================" << endl;
+    {
+        int* p = new int[200];
+        cout << "ARRAY_SIZE: " << ARRAY_SIZE(p) << endl;
+        cout << p << ", len:" << *((size_t*)p - 1) << endl;
+        delete[] p;
+    }
+
+    cout << "=======================" << endl;
+    {
+        char foo1[] = {'h','e','l','l','o'};
         char foo2[] = "hello";
         char* foo = "hello";
         char foo3[10] = {0};
@@ -120,8 +160,10 @@ int main(int argc, char *argv[])
         cout << foo[5] << endl;
         cout << *(foo2+5) << endl;
 
-        cout << strlen(foo) << endl;
-        cout << strlen(foo2) << endl;
+        cout << "strlen(foo): " << strlen(foo) << endl;
+        cout << "strlen(foo2): " << strlen(foo2) << endl;
+        cout << "strlen(foo1): " << strlen(foo1) << endl;
+        cout << "ARRAY_SIZE(foo1): " << ARRAY_SIZE(foo1) << endl;
     }
 
     cout << "=======================" << endl;
@@ -137,19 +179,13 @@ int main(int argc, char *argv[])
         cout << foo << ", len:" << strlen(foo) << endl;
         cout << foo2 << ", len:" << strlen(foo2) << endl;
 
-//        int* value = new int(5);
-//        delete value;
-
-//        int* value = new int[5];
-//        delete[] value;
-
         free(foo2);
     }
 
     cout << "=======================" << endl;
     {
         char * foo = "hello";
-        char * foo2 = new char[strlen(foo)+1];
+        char * foo2 = new char[strlen(foo)+1]();
 
         strcpy(foo2, foo);
         cout << foo << ", len:" << strlen(foo) << endl;
@@ -158,6 +194,7 @@ int main(int argc, char *argv[])
 
         delete[] foo2;
     }
+
 
     cout << "=======================" << endl;
     {
@@ -175,8 +212,8 @@ int main(int argc, char *argv[])
         cout << foo << ", len:" << strlen(foo) << endl;
         cout << foo2 << ", len:" << strlen(foo2) << endl;
 
-        cout << foo2 << ", len:" << *((size_t*)foo2 - 1) << endl;
-        cout << foo2 << ", len:" << *((size_t*)foo3 - 1) << endl;
+//        cout << foo2 << ", len:" << *((size_t*)foo2 - 1) << endl;
+//        cout << foo2 << ", len:" << *((size_t*)foo3 - 1) << endl;
 
         delete[] foo2;
         delete foo3;
