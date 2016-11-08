@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <bitset>
 
-
 // operators overload
 // prefix/postfix
 // members or free functions
