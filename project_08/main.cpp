@@ -348,6 +348,7 @@ int main(int argc, char *argv[])
         int c = static_cast<int>(a);
 
         cout << "c = " << c << endl;
+
     }
 
 
