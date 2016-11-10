@@ -60,6 +60,11 @@ struct instructor_t
     unsigned short schedule_hours;
 };
 
+void person_print(person_t* entity)
+{
+    entity->vtable->print_func(entity);
+}
+
 void student_print(person_t* entity)
 {
     student_t* student = (student_t*)entity;
@@ -203,8 +208,8 @@ int main(int argc, char *argv[])
     cout << "age: " << person1->age << " name: " << person1->name << endl;
     cout << "age: " << person2->age << " name: " << person2->name << endl;
 
-    person1->vtable->print_func(person1);
-    person2->vtable->print_func(person2);
+    person_print(person1);
+    person_print(person2);
 
     delete person1;
     delete person2;
