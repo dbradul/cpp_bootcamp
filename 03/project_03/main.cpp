@@ -164,7 +164,10 @@ int main(int argc, char *argv[])
         delete[] x;
     }
 
-
+    // different order of dimention access might impact performance due to cache miss:
+    // Multidinetional arrays are stored sequentually and thus, if access is not sequentual (j,i),
+    // on big arrays this leads to accessing new memory page on each element access => 
+    // potential risk of cache miss. 
     struct timespec start, finish;
     double elapsed;
 
