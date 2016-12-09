@@ -320,16 +320,6 @@ namespace partial_specialization {
         cout << "value2: " << value2 << endl;
     }
 
-//    template<typename T>
-//    void foo2<T>()
-//    {
-//        cout << __PRETTY_FUNCTION__ << endl;
-
-//        T   value1;
-//        int value2;
-//        cout << "value1: " << value1 << endl;
-//        cout << "value2: " << value2 << endl;
-//    }
 }
 
 namespace static_polymorphism {
@@ -462,18 +452,22 @@ namespace fun {
     template <>
     struct factorial<0>
     {
-      enum { value = 1 };
+      enum
+      {
+          value = 1
+      };
     };
 }
 
 int main(int argc, char *argv[])
 {
-//    int v = 0b01010101;
-//    bool value = true;
 
-//    v ^= (-value ^ v) & (1 << 3);
 
-//    cout << bitset<8>(v) << endl;
+//    char* arr = new char[10]{1};
+//    for (int i=0; i<10; ++i)
+//    {
+//        cout << bitset<8>(arr[i]) << endl;
+//    }
 //    return 0;
 
     {
@@ -635,10 +629,11 @@ int main(int argc, char *argv[])
     {
         stack<char> ethalon_stack;
         stack<bool> special_stack;
+        bool random_bool = true;
 
         for (int i=0; i<16*8; ++i)
         {
-            bool random_bool = true;//...;
+            random_bool = !random_bool;//...;
             special_stack.push(random_bool);
             ethalon_stack.push(random_bool);
         }
@@ -647,7 +642,7 @@ int main(int argc, char *argv[])
         {
             bool bool_value1 = special_stack.pop();
             bool bool_value2 = ethalon_stack.pop();
-            //assert(bool_value1 == bool_value2);
+            assert(bool_value1 == bool_value2);
         }
     }
 
