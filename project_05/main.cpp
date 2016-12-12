@@ -100,7 +100,7 @@ void student_init(student_t* thiz)
     /* >>> VTable construction START >>> */
     vtable_t* vptr = new vtable_t;
     thiz->vtable = vptr;
-    thiz->vtable->print_func = student_print;
+    thiz->base.vtable->print_func = student_print;
     /* <<< VTable construction END <<< */
 
     thiz->base.age = 19;
@@ -117,7 +117,7 @@ void professor_init(professor2_t* thiz)
     /* >>> VTable construction START >>> */
     vtable_t* vptr = new vtable_t;
     thiz->vtable = vptr;
-    thiz->vtable->print_func = professor_print;
+    thiz->base.vtable->print_func = professor_print;
     /* <<< VTable construction END <<< */
 
     thiz->base.age = 42;
@@ -195,7 +195,7 @@ void project_05_foo_local();
 
 int main(int argc, char *argv[])
 {
-    student_t s = {0};
+    student_t s = {};
     student_t* pStudent = &s;
     person_t* pPerson = &s.base;
 
@@ -213,6 +213,7 @@ int main(int argc, char *argv[])
 
     delete person1;
     delete person2;
+
 
     {
         foo(1);
