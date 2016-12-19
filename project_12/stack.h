@@ -18,8 +18,6 @@ private:
     int m_last;
 };
 
-
-
 template<>
 class stack<bool>
 {

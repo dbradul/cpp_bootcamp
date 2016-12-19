@@ -5,6 +5,8 @@
 #include <iomanip>
 #include <bitset>
 #include <cassert>
+#include <type_traits>
+#include <cstring>
 #include "stack.h"
 
 
@@ -307,14 +309,26 @@ namespace partial_specialization {
         cout << "value1: " << value1 << endl;
         cout << "value2: " << value2 << endl;
 
-        cout << "general case for " << typeid(T ).name() << " and " \
-                                    << typeid(T2).name() << endl;
+//        cout << "general case for " << typeid(T ).name() << " and " \
+//                                    << typeid(T2).name() << endl;
     }
+
+    template<>
+    void foo2<double, int>(double value1, int value2)
+    {
+        cout << __PRETTY_FUNCTION__ << "(full)" << endl;
+        cout << "value1: " << value1 << endl;
+        cout << "value2: " << value2 << endl;
+
+//        cout << "general case for " << typeid(int).name() << " and " \
+//                                    << typeid(double).name() << endl;
+    }
+
 
     template<typename T>
     void foo2(T value1, int value2)
     {
-        cout << __PRETTY_FUNCTION__ << endl;
+        cout << __PRETTY_FUNCTION__ << "(overload)" << endl;
 
         cout << "value1: " << value1 << endl;
         cout << "value2: " << value2 << endl;
@@ -459,16 +473,111 @@ namespace fun {
     };
 }
 
+
+namespace my_type_traits {
+
+    template <typename T>
+    struct is_void
+    { static const bool value = false; };
+
+    template <>
+    struct is_void<void>
+    { static const bool value = true; };
+
+    template <typename T>
+    struct is_pointer
+    { static const bool value = false; };
+
+    template <typename T>
+    struct is_pointer<T*>
+    { static const bool value = true; };
+
+    template <typename T>
+    struct is_integral
+    { static const bool value = false; };
+
+
+    template <>
+    struct is_integral<bool>
+    { static const bool value = true; };
+
+    template <>
+    struct is_integral<char>
+    { static const bool value = true; };
+
+    template <>
+    struct is_integral<int>
+    { static const bool value = true; };
+
+    template <>
+    struct is_integral<short>
+    { static const bool value = true; };
+
+    template <>
+    struct is_integral<long>
+    { static const bool value = true; };
+
+
+    enum CopySelector {Fast, Conservative};
+    template<int v>
+    struct Int2Type
+    {
+        enum {value = v};
+    };
+
+
+    template<typename T1, typename T2>
+    T2 copy_impl(T1 first, T1 last, T2 result, Int2Type<Conservative>)
+    {
+        cout << __PRETTY_FUNCTION__ << " (Conservative)" << endl;
+        for (;first!=last; ++first, ++result)
+        {
+            *result = *first;
+        }
+        return result;
+    }
+
+    template<typename T1, typename T2>
+    T2 copy_impl(T1 first, T1 last, T2 result, Int2Type<Fast>)
+    {
+        cout << __PRETTY_FUNCTION__ << " (Fast)" << endl;
+        const size_t n = last - first;
+        memcpy(result, first, n*sizeof(*first));
+        return result + n;
+    }
+
+    template<typename T1, typename T2>
+    T2 copy(T1 first, T1 last, T2 result)
+    {
+        // borrowed from stl
+        typedef typename remove_pointer<T1>::type T1_pointee;
+        typedef typename remove_pointer<T2>::type T2_pointee;
+
+        enum { CopyAlgo =
+               is_pointer<T1>::value &&
+               is_pointer<T2>::value &&
+               is_integral<T1_pointee>::value &&
+               is_integral<T2_pointee>::value &&
+               sizeof(T1) == sizeof(T2)
+               ? Fast : Conservative
+             };
+        Int2Type<CopyAlgo> selector;
+        return copy_impl(first, last, result, selector);
+    }
+
+    struct A
+    {
+        int i;
+        double d;
+        /*virtual*/ void foo(){}
+    };
+
+}
+
+#define ARRAY_SIZE(a) (sizeof(a)/sizeof(a[0]))
+
 int main(int argc, char *argv[])
 {
-
-
-//    char* arr = new char[10]{1};
-//    for (int i=0; i<10; ++i)
-//    {
-//        cout << bitset<8>(arr[i]) << endl;
-//    }
-//    return 0;
 
     {
         using function_template::max;
@@ -538,6 +647,10 @@ int main(int argc, char *argv[])
         using partial_specialization::unique_ptr;
         using partial_specialization::default_deleter;
         using partial_specialization::A;
+        using partial_specialization::foo2;
+
+        foo2(string("abc"), string("xyz"));
+        foo2(42., 42);
 
         {
             auto my_ptr  = unique_ptr<int>(new int(42));
@@ -627,23 +740,23 @@ int main(int argc, char *argv[])
     }
 
     {
-        stack<char> ethalon_stack;
-        stack<bool> special_stack;
-        bool random_bool = true;
+//        stack<char> ethalon_stack;
+//        stack<bool> special_stack;
+//        bool random_bool = true;
 
-        for (int i=0; i<16*8; ++i)
-        {
-            random_bool = !random_bool;//...;
-            special_stack.push(random_bool);
-            ethalon_stack.push(random_bool);
-        }
+//        for (int i=0; i<16*8; ++i)
+//        {
+//            random_bool = !random_bool;//...;
+//            special_stack.push(random_bool);
+//            ethalon_stack.push(random_bool);
+//        }
 
-        for (int i=0; i<16*8; ++i)
-        {
-            bool bool_value1 = special_stack.pop();
-            bool bool_value2 = ethalon_stack.pop();
-            assert(bool_value1 == bool_value2);
-        }
+//        for (int i=0; i<16*8; ++i)
+//        {
+//            bool bool_value1 = special_stack.pop();
+//            bool bool_value2 = ethalon_stack.pop();
+//            assert(bool_value1 == bool_value2);
+//        }
     }
 
 
@@ -652,6 +765,36 @@ int main(int argc, char *argv[])
 
         cout << "======================================" << endl;
         cout << factorial<7>::value << endl;
+    }
+
+    {
+        using namespace my_type_traits;
+
+        cout << my_type_traits::is_pointer<vector<int>::iterator>::value << endl;
+        cout << ::is_pointer<vector<int>::iterator>::value << endl;
+
+        cout << my_type_traits::is_pointer<int*>::value << endl;
+        cout << ::is_pointer<int*>::value << endl;
+
+        cout << my_type_traits::is_void<void>::value << endl;
+        cout << ::is_void<void>::value << endl;
+
+        cout << my_type_traits::is_void<int>::value << endl;
+        cout << ::is_void<int>::value << endl;
+
+        cout << ::is_pod<my_type_traits::A>::value << endl;
+
+        int p1[] = {1,2,3,4,5};
+        int p2[5]  = {};
+        my_type_traits::copy(p1, p1+ARRAY_SIZE(p1), p2);
+        for (size_t i=0; i<ARRAY_SIZE(p2); ++i)
+            cout << p2[i] << endl;
+
+        A a1[] = {{1,42.}, {2,43.}, {3,44.}};
+        A a2[3] = {};
+        my_type_traits::copy(a1, a1+ARRAY_SIZE(a1), a2);
+        for (size_t i=0; i<ARRAY_SIZE(a2); ++i)
+            cout << "i = " << a2[i].i << ", d = " << a2[i].d << endl;
     }
 
     return 0;
