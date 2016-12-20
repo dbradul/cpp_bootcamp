@@ -10,6 +10,21 @@
 // members or free functions
 // functors
 // friend classes and functions
+// Compound Assignment Operators (+=, /=,...) are modifying
+// Binary (*, +, &,...) aren't
+// The latter via the former
+// Binary should return const!
+// != via ==
+// the rest via < and ==
+// Links:
+//  http://stackoverflow.com/questions/4421706/operator-overloading
+// Best practice:
+//  - don't overuse
+//  - symmetry
+//  - mimic built-in types
+//  - members: =, [], ->, (), unary(*,&)
+//  - non-member(usually): <<, >>, +, -
+//  - prefer writing nonmember nonfriend functions if doesn't hit performance
 
 using namespace std;
 
@@ -348,7 +363,6 @@ int main(int argc, char *argv[])
         int c = static_cast<int>(a);
 
         cout << "c = " << c << endl;
-
     }
 
 
@@ -452,7 +466,6 @@ int main(int argc, char *argv[])
         Limiter upper_limit(5);
         cout << count_if(v.begin(), v.end(), upper_limit) << endl;
     }
-
 
     return 0;
 }

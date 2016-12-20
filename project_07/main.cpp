@@ -146,6 +146,7 @@ namespace ctor_order
 
         public:
         B()
+            : m_a()
         {
             cout << __PRETTY_FUNCTION__ << endl;
         }
@@ -163,6 +164,8 @@ namespace ctor_order
 
         public:
         C()
+            : m_a()
+            , m_b()
         {
             cout << __PRETTY_FUNCTION__ << endl;
         }
@@ -179,26 +182,26 @@ namespace assignment_init
     class A
     {
         int m_data;
-        int& m_data2;
+        //int& m_data2;
 
     public:
         A()
             : m_data(0)
-            , m_data2(m_data)
+            //, m_data2(m_data)
         {
             cout << __PRETTY_FUNCTION__ << endl;
         }
 
         A(const A& rhs)
             : m_data(rhs.m_data)
-            , m_data2(rhs.m_data2)
+            //, m_data2(rhs.m_data2)
         {
             cout << __PRETTY_FUNCTION__ << endl;
         }
 
         A(int value)
             : m_data(value)
-            , m_data2(value)
+            //, m_data2(value)
         {
             cout << __PRETTY_FUNCTION__ << endl;
             //m_data2 = value;
@@ -216,10 +219,10 @@ namespace assignment_init
 
         public:
         B()
-            : m_a(42)
+           //: m_a(42)
         {
             cout << __PRETTY_FUNCTION__ << endl;
-//            m_a = A(42);
+            m_a = A(43);
         }
 
         ~B()
@@ -364,11 +367,11 @@ namespace copy_or_ref
 
     A foo()
     {
-//        bool cond = true;
-//        A b(112);
+        bool cond = true;
+        //A b(112);
         A a(111);
-        return a;
-//        return cond ? a : b;
+        //return a;
+        return cond ? a : A (112);
         //        return A(111);
     }
 }
@@ -411,7 +414,7 @@ int main(int argc, char *argv[])
     {
         using namespace default_ctor;
         //A a;
-        A a[10] = {0};
+        A a[10] = {};
     }
 
     {
@@ -444,11 +447,11 @@ int main(int argc, char *argv[])
 
         cout << "================[NRVO]===================" << endl;
 
-        A a(5);
-        cout << a.m_data_ptr << " = " << *a.m_data_ptr << endl;
-        cout << a.m_data_value << endl;
+//        A a(5);
+//        cout << a.m_data_ptr << " = " << *a.m_data_ptr << endl;
+//        cout << a.m_data_value << endl;
 
-        foo(a);
+//        foo(a);
 
         A a2 = foo();
     }
