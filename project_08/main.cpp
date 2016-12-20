@@ -28,6 +28,8 @@
 
 using namespace std;
 
+#define ARRAYSIZE(a) (sizeof(a)/sizeof(a[0]))
+
 class A
 {
     int m_value;
@@ -35,6 +37,12 @@ class A
 public:
     A()
         : m_value(0)
+    {
+        cout << __PRETTY_FUNCTION__ << endl;
+    }
+
+    A(int value)
+        : m_value(value)
     {
         cout << __PRETTY_FUNCTION__ << endl;
     }
@@ -60,15 +68,15 @@ public:
         return *this;
     }
 
-    void swap(A& from)
-    {
-        std::swap(from.m_value,  m_value);
-    }
-
     A& operator=(const char* value)
     {
         m_value = atoi(value);
         return *this;
+    }
+
+    void swap(A& from)
+    {
+        std::swap(from.m_value,  m_value);
     }
 
     A& operator++()
@@ -293,27 +301,22 @@ public:
 
 };
 
-class Limiter
-{
-    int m_limit;
 
-public:
-    Limiter(int limit):
-        m_limit(limit)
+struct Modulo
+{
+    int m_modulo;
+
+    Modulo(int limit):
+        m_modulo(limit)
     {
 
     }
-
     bool operator()(int val)
     {
-        return val < m_limit;
+        return val % m_modulo == 0;
     }
 };
 
-bool IsEven(int val)
-{
-    return val % 2 == 0;
-}
 
 
 class Node
@@ -351,7 +354,7 @@ int main(int argc, char *argv[])
 {
 
     {
-        #define ARRAYSIZE(a) (sizeof(a)/sizeof(a[0]))
+
         A a;
         a = "42";
 
@@ -461,10 +464,10 @@ int main(int argc, char *argv[])
 
     {
         vector<int> v = {1,2,3,4,5,6,7,8,9,10};
-        cout << count_if(v.begin(), v.end(), IsEven) << endl;
-
-        Limiter upper_limit(5);
-        cout << count_if(v.begin(), v.end(), upper_limit) << endl;
+        Modulo isEven(2);
+        cout << count_if(v.begin(), v.end(), isEven) << endl;
+        Modulo isFiveDiv(5);
+        cout << count_if(v.begin(), v.end(), isFiveDiv) << endl;
     }
 
     return 0;
