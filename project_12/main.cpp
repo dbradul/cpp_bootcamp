@@ -28,8 +28,10 @@ using namespace std;
 // Tips and trics
 //  Compile-time factorial
 //  Deeply-nested vectors
+//  Type traits
 //
-// ?Caveats
+// Links:
+//  http://www.bogotobogo.com/cplusplus/templates.php
 //
 // H/w:
 // 1. Create:
@@ -119,34 +121,34 @@ namespace class_template
 template <typename T>
 struct list
 {
-    list* next_;
-    T data_;
+    list* m_next;
+    T m_data;
 
     list()
-        : next_(nullptr)
-        , data_()
+        : m_next(nullptr)
+        , m_data()
     {}
 
     list(T data, list* next)
-        : next_(next)
-        , data_(data)
+        : m_next(next)
+        , m_data(data)
     {}
 
     void push_front(T data)
     {
         //auto elem = new list(data, next_);
-        auto elem = new list<T>(data, next_);
+        auto elem = new list<T>(data, m_next);
 
-        next_ = elem;
+        m_next = elem;
     }
 
     T pop_front()
     {
-        if (next_)
+        if (m_next)
         {
-            list* tmp = next_;
-            T data = next_->data_;
-            next_ = next_->next_;
+            list* tmp = m_next;
+            T data = m_next->m_data;
+            m_next = m_next->m_next;
             delete tmp;
             return data;
         }
@@ -156,7 +158,7 @@ struct list
 
     bool is_empty()
     {
-        return !next_;
+        return !m_next;
     }
 };
 
@@ -730,28 +732,32 @@ int main(int argc, char *argv[])
 
     {
         cout << "======================================" << endl;
-        stack<int> s;
+        stack<int, 16> s;
         s.push(42);
         cout << s.pop() << endl;
 
-        stack<bool> s2;
+        stack<bool, 16> s2;
         s2.push(1);
         cout << s2.pop() << endl;
     }
 
     {
-//        stack<char> ethalon_stack;
-//        stack<bool> special_stack;
+//        const size_t stackSize = 16*8;
+
+//        stack<char, stackSize> ethalon_stack;
+//        stack<bool, stackSize/8> special_stack;
 //        bool random_bool = true;
 
-//        for (int i=0; i<16*8; ++i)
+//        for (size_t i=0; i<stackSize; ++i)
 //        {
 //            random_bool = !random_bool;//...;
 //            special_stack.push(random_bool);
 //            ethalon_stack.push(random_bool);
 //        }
 
-//        for (int i=0; i<16*8; ++i)
+//        //
+//        cout << "\n\n-----------POPing-----------------\n\n" << endl;
+//        for (size_t i=0; i<stackSize; ++i)
 //        {
 //            bool bool_value1 = special_stack.pop();
 //            bool bool_value2 = ethalon_stack.pop();
@@ -788,13 +794,17 @@ int main(int argc, char *argv[])
         int p2[5]  = {};
         my_type_traits::copy(p1, p1+ARRAY_SIZE(p1), p2);
         for (size_t i=0; i<ARRAY_SIZE(p2); ++i)
+        {
             cout << p2[i] << endl;
+        }
 
         A a1[] = {{1,42.}, {2,43.}, {3,44.}};
         A a2[3] = {};
         my_type_traits::copy(a1, a1+ARRAY_SIZE(a1), a2);
         for (size_t i=0; i<ARRAY_SIZE(a2); ++i)
+        {
             cout << "i = " << a2[i].i << ", d = " << a2[i].d << endl;
+        }
     }
 
     return 0;

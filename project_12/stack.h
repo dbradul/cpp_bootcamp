@@ -4,26 +4,40 @@
 
 #include <iostream>
 
-template<typename T>
+template<typename T, int N=16>
 class stack
 {
 public:
-    stack();
+    stack()
+        : m_data()
+        , m_last(0)
+    {
 
-    void push(const T& value);
-    T pop();
+    }
+
+    void push(const T& value)
+    {
+        m_data[m_last++] = value;
+    }
+
+    T pop()
+    {
+        return m_data[m_last--];
+    }
 
 private:
-    T* m_data;
+    T m_data[N];
     int m_last;
 };
 
-template<>
-class stack<bool>
+
+
+template<int N>
+class stack<bool, N>
 {
 public:
     stack()
-        : m_data(new bool[16])
+        : m_data()
         , m_last(0)
     {
     }
@@ -47,7 +61,7 @@ public:
     }
 
 private:
-    bool* m_data;
+    bool m_data[N];
     int m_last;
 };
 
