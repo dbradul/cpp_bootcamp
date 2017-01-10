@@ -42,25 +42,7 @@ const Box& max<Box>(const Box& value1, const Box& value2)
 
 }
 
-namespace comparator {
 
-template<typename T>
-int Comp(const T& obj1, const T& obj2)
-{
-    if (obj1 > obj2) return 1;
-    if (obj1 < obj2) return -1;
-    return 0;
-}
-
-template<>
-int Comp(const Box& obj1, const Box& obj2)
-{
-    if (obj1.size > obj2.size) return 1;
-    if (obj1.size < obj2.size) return -1;
-    return 0;
-}
-
-}
 
 namespace explicit_keyword {
 
@@ -209,7 +191,7 @@ int main(int argc, char *argv[])
 
         long l = 42;
         int i = l;
-        float d = 42.f;
+        float d = 42.;
         float f = i; //why is the warning
         f = 42.42;   //why is the warning
         i = f;       //why?
@@ -220,6 +202,7 @@ int main(int argc, char *argv[])
         cout << i << endl;
         cout << s << endl;
         cout << s2 << endl;
+        cout << d << endl;
 
         int unsigned v1 = -1u;
         int signed v2 = v1;
@@ -231,12 +214,11 @@ int main(int argc, char *argv[])
 
 //        foo(f);
 //        foo2(i);
-        fooT(f);
-        fooT(i);
+//        fooT(f);
+//        fooT(i);
 
         A a;
         B b;
-        D d1;
         a = b; //slicing
 
         A* p_a = new A();
@@ -253,10 +235,6 @@ int main(int argc, char *argv[])
         int b = static_cast<int>(a);
         foo(static_cast<int>(a));
         cout << "b: " << b << endl;
-
-//        Int a2(43);
-//        int b2 = static_cast<int>(a2);
-//        cout << "b2: " << b2 << endl;
     }
 
     {
@@ -275,11 +253,13 @@ int main(int argc, char *argv[])
         a = b;
 //        b = static_cast<A>(a);
 
-        A* p_a = new A();
+        A* p_a  = new A();
+        A* p_a2 = new B();
         B* p_b = new B();
-        D* p_d = new D();
         p_a = p_b;
         p_b = static_cast<B*>(p_a); //UB
+        p_b = static_cast<B*>(p_a2);
+        //D* p_d = new D();
         //p_d = static_cast<D*>(p_a);
 
         int* p_i = &i;
@@ -319,11 +299,6 @@ int main(int argc, char *argv[])
         ptr2[0]='Z';
         cout << "ptr2: " << ptr2 << endl;
 
-        // try to avoid but sometimes it is legal
-//        const int&  v2 = f_c(42);
-////        int&        v3 = f(42);
-//        int         v4 = 42;
-//        f_cr(v4);
     }
 
     {
