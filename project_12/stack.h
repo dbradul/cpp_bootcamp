@@ -46,8 +46,8 @@ public:
     {
         std::cout << __PRETTY_FUNCTION__ << std::endl;
 
-        int num_elem = (m_last-1) / 8;
-        int offset_elem = (m_last-1) % 8;
+        int num_elem = (m_last) / 8;
+        int offset_elem = (m_last) % 8;
 
         m_data[num_elem] ^= (-value ^ m_data[num_elem])
                             & (1 << (7-offset_elem));
@@ -61,7 +61,7 @@ public:
     }
 
 private:
-    bool m_data[N];
+    char m_data[N];
     int m_last;
 };
 
