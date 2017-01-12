@@ -83,10 +83,6 @@ struct CmpLen
 
 
 
-
-
-
-
 #define ARRAY_SIZE(a) sizeof(a)/sizeof(a[0])
 
 int main()
@@ -97,8 +93,7 @@ int main()
 
         // [begin, end)
 
-/*vector<Box>::iterator*/
-        for(auto i = v1.begin(); i < v1.end(); ++i)
+        for(/*vector<Box>::iterator*/ auto i = v1.begin(); i < v1.end(); ++i)
         {
             cout << *i << endl;
         }
@@ -134,7 +129,6 @@ int main()
         {
             cout << elem << endl;
         }
-
     }
 
 
@@ -175,8 +169,6 @@ int main()
             cout << "not found!" << endl;
         }
 
-        //return 0;
-
         // Box
         int value = 43;
         vector<Box>::reverse_iterator it = find_if(v.rbegin(),
@@ -204,60 +196,29 @@ int main()
             }
         }
 
-//        {
-//            for (auto it=v2.begin(); it!=v2.end();
-//                                          /*it++*/)
-//            {
-//                if(*it%2 == 0)
-//                   it = v2.erase(it);
-//                else
-//                   ++it;
-//            }
+        {
+            for (auto it=v2.begin(); it!=v2.end();
+                                          /*it++*/)
+            {
+                if(*it%2 == 0)
+                   it = v2.erase(it);
+                else
+                   ++it;
+            }
 
-//            cout << v2 << endl;
-//        }
-
-
+            cout << v2 << endl;
+        }
 
         {
-//            std::vector<int> v2 = {1, 2, 3, 4, 5, 6, 7, 8, 2};
-//            // erase-remove idiom
-//            auto it = remove_if( v2.begin(),
-//                                 v2.end(),
-//                                 [](int& elem)
-//            {
-//                cout << __PRETTY_FUNCTION__ << ": " << elem << " " << elem%2 << endl;
-//                return !elem%2;
-//            } );
+            std::vector<int> v2 = {1, 2, 3, 4, 5, 6, 7, 8, 2};
+            // erase-remove idiom
 
-//            cout << *(it-1) << endl;
+            v2.erase( remove_if( v2.begin(),
+                                 v2.end(),
+                                 [](int& elem)
+                                 { return !elem%2; } ), v2.end() );
 
-//            v2.erase( it, v2.end() );
-
-//            cout << v2 << endl;
-
-            std::vector<int> v(10);
-            for (unsigned i = 0; i < v.size(); ++i)
-              v[i] = i;
-            cout << v << endl;
-
-            // видаляємо всі елементи рівні 5
-            v.erase( std::remove( v.begin(), v.end(), 5 ), v.end() );
-            cout << v << endl;
-
-            // видаляємо всі непарні елементи
-            v.erase( std::remove_if( v.begin(), v.end(),
-
-                                     [](int& elem)
-                                                 {
-                                                     cout << __PRETTY_FUNCTION__ << ": " << elem << " " << elem%2 << endl;
-                                                     return !(elem%2);
-                                                 }
-
-                                     ), v.end() );
-
-            cout << v << endl;
-
+            cout << v2 << endl;
         }
 
         {
@@ -272,12 +233,9 @@ int main()
     // associative containers: map, mutlimup, set, multiset, unordered_*
     {
 //        map<string, Box, CmpLen> m = {  {"aaaa", {42}},
-        map<string, Box, CmpLen> m =
-                             {
+        map<string, Box, CmpLen> m = {
                                 {"aaaa", {42}},
-
                                 {"c", {43}},
-
                                 {"bbb", {41}},
                              };
 
