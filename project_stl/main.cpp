@@ -7,6 +7,8 @@
 #include <functional>
 #include <array>
 #include <map>
+#include <unordered_map>
+#include <set>
 
 using namespace std;
 
@@ -60,6 +62,20 @@ ostream& operator<< (ostream& os, const vector<T>& rhs)
 }
 
 
+template<typename K, typename V,
+                     typename Hash = std::hash<K>,
+                     typename KeyEqual = std::equal_to<K>,
+                     typename Allocator = std::allocator< std::pair<const K, V>>>
+ostream& operator<< (ostream& os, const unordered_map<K, V, Hash, KeyEqual, Allocator>& rhs)
+{
+    os << rhs.size() << ": { ";
+    for (const pair<K, V>& elem : rhs)
+    {
+        os << "(" << elem.first << "->" << elem.second << "), ";
+    }
+    os << " }";
+    return os;
+}
 
 template<typename K, typename V, typename Cmp = std::less<K>>
 ostream& operator<< (ostream& os, const map<K, V, Cmp>& rhs)
@@ -81,6 +97,35 @@ struct CmpLen
     }
 };
 
+struct HashT
+{
+    size_t operator()(const std::string& key) const
+    {
+        size_t result = 2166136261;
+
+        for (size_t i = 0; i != key.size(); ++i) {
+          result = (result * 16777619) ^ key[i];
+        }
+
+        return result ^ (1<< key.length());
+    }
+};
+
+struct EqualT
+{
+    bool operator()(const std::string& key1, const std::string& key2) const
+    {
+        cout << __PRETTY_FUNCTION__ << endl;
+        return key1==key2;
+    }
+};
+
+struct Sum {
+    Sum() { sum = 0; }
+    void operator()(int n) { sum += n; }
+
+    int sum;
+};
 
 
 #define ARRAY_SIZE(a) sizeof(a)/sizeof(a[0])
@@ -223,11 +268,27 @@ int main()
 
         {
             string str = "Текст с несколькими   пробелами";
+
             str.erase(remove(str.begin(), str.end(), ' '),
                       str.end());
             cout << str << '\n';
         }
+    }
 
+    {
+        list<int> l = { 1, 1, 1 };
+
+        l.push_front(2);
+        l.push_back(3);
+
+        auto it = std::find(l.begin(), l.end(), 1);
+        if (it != l.end()) {
+            l.insert(it, 42);
+        }
+
+        for (int n : l) {
+            std::cout << n << '\n';
+        }
     }
 
     // associative containers: map, mutlimup, set, multiset, unordered_*
@@ -272,12 +333,70 @@ int main()
         m["X"] = 88;
         cout << m << endl;
 
-        cout << m["yy"] << endl;
         auto it = m.find("yy");
+        cout << (it != m.end()) << endl;
 
+        cout << (m["yy"]==42) << endl;
+
+        it = m.find("yy");
         cout << (it != m.end()) << endl;
 
         cout << m << endl;
+    }
+
+    {
+        set<string, CmpLen> s = { "aaaa", "c", "bbb" };
+
+        for (auto it=s.begin(); it!=s.end(); ++it)
+        {
+            cout << *it << endl;
+        }
+    }
+
+    {
+        unordered_map<string, int, HashT, EqualT> m = {
+                        {"a", 1},
+                        {"b", 2},
+                        {"c", 3},
+                        {"d", 4}
+                    };
+
+        cout << m << endl;
+
+        m["a"] = -1;
+        cout << m["a"] << endl;
+
+        auto it = m.find("yy");
+        cout << (it != m.end()) << endl;
+        cout << m["yy"] << endl;
+        it = m.find("yy");
+        cout << (it != m.end()) << endl;
+
+        cout << m << endl;
+    }
+
+    // algorythms
+    {
+        std::vector<int> v{1,1,1,1,1,1};
+        std::vector<int> v2(1);
+
+        cout << v << endl;
+
+        std::for_each(v.begin(), v.end(), [](int &n){ n++; });
+        Sum s = std::for_each(v.begin(), v.end(), Sum());
+
+        cout << v << endl;
+        cout << s.sum << endl;
+
+        std::transform(v.begin(), v.end(), v2.begin(), [](int &n){ return n*n; });
+        cout << v << endl;
+        cout << v2 << endl;
+
+        int sum = accumulate(v.begin(), v.end(), 0);
+        int product = accumulate(v.begin(), v.end(), 1, [](int &a, int &b){ return a*b; });
+
+        cout << sum << endl;
+        cout << product << endl;
     }
 
     return 0;
