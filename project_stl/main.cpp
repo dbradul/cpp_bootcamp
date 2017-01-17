@@ -185,28 +185,6 @@ bool Filter (T value)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-template<class T>
-struct Node
-{
-    T data;
-    Node* next;
-};
-
-
 int main()
 {
 
