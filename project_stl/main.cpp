@@ -2,9 +2,9 @@
 #include <cassert>
 #include <bits/stdc++.h>
 #include <fstream>
+#include "array.h"
 
-
-// Summary:
+// Containers (summary):
 //    - use vector as default container
 //    - use array when fixed size is needed
 //    - use map when association is needed
@@ -12,6 +12,14 @@
 //    - use set when need fast lookup/insert, order
 //    - use multi_* of the above when don't need uniqueness
 //    - use algorythm as the 1st resort
+
+
+// Iterators:
+// http://www.cplusplus.com/reference/iterator/
+
+// Links:
+// https://channel9.msdn.com/Series/C9-Lectures-Stephan-T-Lavavej-Standard-Template-Library-STL-/C9-Lectures-Introduction-to-STL-with-Stephan-T-Lavavej
+// stroustrup.com/Programming/20_containers.ppt
 
 // H/w:
 //  1. Sort word fr. in reversed order
@@ -24,6 +32,19 @@ struct Box1
 {
     int value;
     char ch_value;
+};
+
+//bool operator<(const Box1 &a, const Box1 &b)
+//{
+//    return a.value<b.value;
+//}
+
+struct Box1Cmp
+{
+    bool operator()(const Box1 &a, const Box1 &b)
+    {
+        return a.value<b.value;
+    }
 };
 
 struct Box
@@ -56,6 +77,12 @@ struct Box
     }
 };
 
+
+ostream& operator<< (ostream& os, const Box1& rhs)
+{
+    os << rhs.value << ": " << rhs.ch_value;
+    return os;
+}
 
 ostream& operator<< (ostream& os, const Box& rhs)
 {
@@ -144,10 +171,45 @@ struct Sum {
 };
 
 
+
+
+template<typename T, int N>
+bool Filter (T value)
+{
+    return value != N;
+}
+
+
 #define ARRAY_SIZE(a) sizeof(a)/sizeof(a[0])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+template<class T>
+struct Node
+{
+    T data;
+    Node* next;
+};
+
 
 int main()
 {
+
     // STL = containers <-> itertors <-> algorithms
     {
         std::vector<int> v1 = {1,2,3,4};
@@ -180,6 +242,7 @@ int main()
         //stable_sort
         sort(a.begin(), a.end());
 
+        auto iiittt = a.begin();
 
         cout << v << endl;
 
@@ -392,13 +455,19 @@ int main()
         cout << m << endl;
     }
 
+    {
+        cout << "hash<int>()(42): "     << hash<int>()(42) << endl;
+        cout << "hash<double>()(42): "  << hash<double>()(42) << endl;
+        cout << "hash<char>()('a'): "   << hash<char>()('a') << endl;
+        cout << "hash<string>()(\"42\"): " << hash<string>()("42") << endl;
+    }
 
     {
         // count words
         unordered_map<string, int> words_count;
 
         ifstream file;
-        file.open("/home/db/test2.txt");
+        file.open("test2.txt");
         string word;
 
         while (file >> word)
@@ -453,7 +522,6 @@ int main()
             cout << elem << endl;
         }
         cout << "..........................." << endl;
-
     }
 
 
@@ -532,10 +600,13 @@ int main()
 
         // find
         // find_if
+        // TBD
+
         // equal
         // equal_if
-        // all_of
+        // TBD
 
+        // all_of
         vector<Box> v0 = {{1},{2},{3}};
         cout << any_of(v0.begin(), v0.end(), [](const Box& b){return b.value%2==0;}) << endl;
 
@@ -555,6 +626,8 @@ int main()
 
         // replace
         // replace_if
+
+
         // copy
         // copy_if
         vector<Box> v4 = {{1},{2},{3}};
@@ -572,13 +645,13 @@ int main()
             std::vector<Box1> v2{
                 {2,'d'},
                 {10,'a'},
-                {13,'e'},
+                {2,'1'},
+                {1,'2'},
+                {133,'3'},
+                {133,'e'},
                 {2,'c'},
                 {10,'b'},
                 {13,'f'},
-                {2,'1'},
-                {1,'2'},
-                {33,'3'},
                 {2,'4'},
                 {1,'5'},
                 {33,'6'},
@@ -587,17 +660,52 @@ int main()
             for_each (v2.begin(), v2.end(),
                       [](Box1 &a){cout << a.value << ": " << a.ch_value << endl;});
 
-            Box1 b1 = {33,'6'};
+            Box1 b1 = {32,'6'};
             bool b = binary_search(
                           v2.begin(),
                           v2.end(),
                           b1,
                           [](const Box1 &a, const Box1 &b){ return a.value==b.value; });
 
-//            lower_bound
+            auto it = lower_bound(
+                                    v2.begin(),
+                                    v2.end(),
+                                    b1,
+                                    Box1Cmp());
+
+            cout << "lower_bound: " << *it << "\n" << endl;
+            v2.insert(it, b1);
+            cout << v2 << endl;
+
+
+            {
+                vector<int> v;
+
+                ifstream file;
+                file.open("QuickSort.txt");
+
+                istream_iterator<int> start (file); //input iterator from stream
+                istream_iterator<int> end; // end of stream iterator
+//                copy (start, end, back_inserter(v));
+//                sort(v.begin(), v.end());
+//                cout << v << endl;
+
+                srand(time(0));
+                vector<Box1> v2;
+                transform(start,
+                          end,
+                          back_inserter(v2),
+                          [](const int &elem){return Box1{elem, 97+rand()%26};});
+
+                //copy(fileStream, eof, ostream_iterator<int>(cout, " "));
+                cout << v2 << endl;
+            }
+
+
 //            nth_element
         }
     }
 
     return 0;
 }
+
