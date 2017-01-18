@@ -22,7 +22,7 @@
 // stroustrup.com/Programming/20_containers.ppt
 
 // H/w:
-//  1. Sort word fr. in reversed order
+//  1. Sort word frequency in reversed order
 //  2. Concatenate all elements in vector<string>
 //  3. Create deque? (http://stackoverflow.com/questions/6292332/what-really-is-a-deque-in-stl)
 
@@ -80,7 +80,7 @@ struct Box
 
 ostream& operator<< (ostream& os, const Box1& rhs)
 {
-    os << rhs.value << ": " << rhs.ch_value;
+    os << "{" << rhs.value << ": " << rhs.ch_value << "}";// << endl;
     return os;
 }
 
@@ -171,40 +171,8 @@ struct Sum {
 };
 
 
-
-
-template<typename T, int N>
-bool Filter (T value)
-{
-    return value != N;
-}
-
-
 #define ARRAY_SIZE(a) sizeof(a)/sizeof(a[0])
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-template<class T>
-struct Node
-{
-    T data;
-    Node* next;
-};
 
 
 int main()
@@ -466,8 +434,7 @@ int main()
         // count words
         unordered_map<string, int> words_count;
 
-        ifstream file;
-        file.open("test2.txt");
+        ifstream file("test2.txt");
         string word;
 
         while (file >> word)
@@ -483,8 +450,8 @@ int main()
 
         unordered_set<string/*, CmpLen*/> s = { "aaaa", "c", "bbb" };
         unordered_map<string, int> m = { {"aaaa", 42},
-                               {"c", 3},
-                               {"bbb", 33} };
+                                           {"c", 3},
+                                           {"bbb", 33} };
 
         for (auto it=s.begin(); it!=s.end(); ++it)
         {
@@ -516,12 +483,10 @@ int main()
 //                            v.begin());
 //                            std::inserter(result, result.end()));
 
-        cout << "..........................." << endl;
         for (auto elem : v)
         {
             cout << elem << endl;
         }
-        cout << "..........................." << endl;
     }
 
 
@@ -542,11 +507,10 @@ int main()
      }
 
 
-
-    // algorythms
+    // algorythms = non-modifying + modifying + sorting&relational
     {
         // non-modifying
-        std::vector<int> v{1,1,1,1,1,1};
+        std::vector<int> v{1,1,1,1,1,10};
         std::vector<int> v2(v.size());
 
         cout << v << endl;
@@ -559,14 +523,22 @@ int main()
         cout << v << endl;
         cout << s.sum << endl;
 
+
         int sum     = accumulate(v.begin(), v.end(), 0);
+        int sum2     = accumulate(v.begin(), v.end(), v[0]);
         int subtr   = accumulate(v.begin(), v.end(), 0, minus<int>());
         int product = accumulate(v.begin(), v.end(), 1, multiplies<int>());
         int product2= accumulate(v.begin(), v.end(), 1, [](const int& a, const int& b){ return a*b; });
-        int min     = accumulate(v.begin(), v.end(), v[0], [](const int& a, const int& b){ return ::min(a,b);});
-        int max     = accumulate(v.begin(), v.end(), v[0], [](const int& a, const int& b){ return ::max(a,b);});
+
+        int min = accumulate(v.begin(), v.end(), v[0],
+                [](const int& a, const int& b){ return std::min(a,b);});
+
+        int max = accumulate(v.begin(), v.end(), v[0],
+                [](const int& a, const int& b){ return ::max(a,b);});
+
 
         cout << sum << endl;
+        cout << sum2 << endl;
         cout << subtr << endl;
         cout << product << endl;
         cout << product2 << endl;
@@ -598,6 +570,7 @@ int main()
             cout << std::count_if(v.begin(), v.end(), [](const int& value){return value%2==0;}) << endl;
         }
 
+
         // find
         // find_if
         // TBD
@@ -607,22 +580,46 @@ int main()
         // TBD
 
         // all_of
+        int value = 2;
         vector<Box> v0 = {{1},{2},{3}};
-        cout << any_of(v0.begin(), v0.end(), [](const Box& b){return b.value%2==0;}) << endl;
+        cout << any_of(v0.begin(), v0.end(),
+                       [&](const Box& b){return b.value%value==0;}) << endl;
+
+        cout << count_if(v0.begin(), v0.end(),
+                        [&](const Box& b){return b.value>=value;}) << endl;
+
+
+        list<int> ll = {1,2,3};
+        for(auto it = ll.rbegin(); it != ll.rend(); ++it)
+        {
+            cout << *it << endl;
+        }
+//        sort(ll.begin(), ll.end());
+
 
         // modifying
         std::fill (v.begin(),v.end()-1, 5);
         cout << v << endl;
 
         vector<int> v3 = v;
-        std::transform(v.begin(), v.end(),
-                       v3.begin(),
-                       v3.begin(),
+        vector<int> v44;
+
+        std::fill (v.begin(),v.end(), 1);
+
+        cout << "BEFORE: " << v << endl;
+
+        std::transform(v.begin()+1, v.end(),
+                       v.begin(),
+                       v.begin()+1,
                        [](int &n, int &n1){ return n+n1; });
 
-        cout << v << endl;
+        cout << "AFTER: " << v << endl;
+
         cout << v2 << endl;
+//        cout << v << endl;
         cout << v3 << endl;
+        cout << v44 << endl;
+
 
         // replace
         // replace_if
@@ -630,14 +627,15 @@ int main()
 
         // copy
         // copy_if
-        vector<Box> v4 = {{1},{2},{3}};
+        vector<Box> v4 = {{1},{2},{3},{4}};
         vector<Box> v5 = {{42}};
         copy_if(v4.begin(), v4.end(),
-                back_inserter(v5),
-                //v5.begin(),
+                //back_inserter(v5),
+                v5.begin(),
                 [](const Box& b){return b.value%2==0;});
 
         cout << v5 << endl;
+
 
         // sorting+relational
         {
@@ -655,17 +653,30 @@ int main()
                 {2,'4'},
                 {1,'5'},
                 {33,'6'},
+
             };
-            std::sort(v2.begin(), v2.end(), [](Box1 &a, Box1 &b){ return a.value<b.value; });
+
+            std::sort(v2.begin(), v2.end(),
+                      [](Box1 &a, Box1 &b){ return a.value<b.value; });
+
+            cout << v2 << endl;
+
+
             for_each (v2.begin(), v2.end(),
                       [](Box1 &a){cout << a.value << ": " << a.ch_value << endl;});
+
 
             Box1 b1 = {32,'6'};
             bool b = binary_search(
                           v2.begin(),
                           v2.end(),
                           b1,
-                          [](const Box1 &a, const Box1 &b){ return a.value==b.value; });
+                          [](const Box1 &a, const Box1 &b)
+                          { return a.value<b.value; });
+
+
+            cout << b << endl;
+
 
             auto it = lower_bound(
                                     v2.begin(),
@@ -696,8 +707,17 @@ int main()
                           [](const int &elem){return Box1{elem, 'a'+rand()%('z'-'a')};});
 
                 copy(v2.begin(), v2.end(), ostream_iterator<Box1>(cout, ", "));
-            }
 
+                vector<Box1> v_stable_sort = v2;
+                stable_sort(v_stable_sort.begin(), v_stable_sort.end(), Box1Cmp());
+                sort(v2.begin(), v2.end(), Box1Cmp());
+
+                bool is_equal = equal(v_stable_sort.begin(), v_stable_sort.end(),
+                      v2.begin(),
+                      [](const Box1 &a, const Box1 &b){ return a.value==b.value && a.ch_value==b.ch_value; });
+
+                cout << "stable equal to unstable?: " << boolalpha << is_equal << endl;
+            }
 
             return 0;
 //            nth_element
