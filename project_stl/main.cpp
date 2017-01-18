@@ -677,31 +677,29 @@ int main()
             v2.insert(it, b1);
             cout << v2 << endl;
 
-
             {
-                vector<int> v;
-
-                ifstream file;
-                file.open("QuickSort.txt");
+                ifstream file("/home/db/Downloads/Dropbox/_temp/QuickSort.txt");
 
                 istream_iterator<int> start (file); //input iterator from stream
                 istream_iterator<int> end; // end of stream iterator
-//                copy (start, end, back_inserter(v));
-//                sort(v.begin(), v.end());
-//                cout << v << endl;
+                vector<int> v(start, end);
+                cout << v << endl;
+
+                file.clear();
+                file.seekg(0);
 
                 srand(time(0));
                 vector<Box1> v2;
                 transform(start,
                           end,
                           back_inserter(v2),
-                          [](const int &elem){return Box1{elem, 97+rand()%26};});
+                          [](const int &elem){return Box1{elem, 'a'+rand()%('z'-'a')};});
 
-                //copy(fileStream, eof, ostream_iterator<int>(cout, " "));
-                cout << v2 << endl;
+                copy(v2.begin(), v2.end(), ostream_iterator<Box1>(cout, ", "));
             }
 
 
+            return 0;
 //            nth_element
         }
     }
