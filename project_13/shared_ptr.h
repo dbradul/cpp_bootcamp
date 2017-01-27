@@ -25,7 +25,6 @@ namespace my {
           : m_data(nullptr)
           , m_control(new ControlBlock)
         {
-            //increment();
         }
 
         shared_ptr(T* ptr)
@@ -39,7 +38,6 @@ namespace my {
           : m_data(rhs.m_data)
           , m_control(rhs.m_control)
         {
-            //TODO: atomic?
             attach();
         }
 
@@ -130,19 +128,12 @@ namespace my {
             return m_data!=nullptr;
         }
 
-//        operator T*()
-//        {
-//            return m_data;
-//        }
-
         ~shared_ptr()
         {
             detach();
         }
 
     private:
-
-
         void detach()
         {
             --m_control->m_useCount;
@@ -150,12 +141,9 @@ namespace my {
 
             if (0 == m_control->m_useCount)
             {
-                // TODO: deleter
                 m_deleter(m_data);
-                ///delete m_data;
                 m_data = nullptr;
                 delete m_control;
-                //m_control.reset(nullptr);
             }
         }
 

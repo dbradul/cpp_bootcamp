@@ -44,8 +44,6 @@ namespace my
         unique_ptr(unique_ptr&& rhs):
             m_data(nullptr)
         {
-//            m_data(std::move(rhs.m_data));
-//            rhs.m_data = nullptr;
             swap(rhs);
         }
 
@@ -59,26 +57,12 @@ namespace my
         {
             std::swap(to.m_data,    m_data);
             std::swap(to.m_deleter, m_deleter);
-
-//            {
-//                T* tmp = m_data;
-//                m_data = to.m_data;
-//                to.m_data = tmp;
-//            }
-
-//            {
-//                Deleter tmp = m_deleler;
-//                m_deleler = to.m_deleler;
-//                to.m_deleler = tmp;
-//            }
-
         }
 
         ~unique_ptr()
         {
             cleanup();
         }
-
 
         void cleanup()
         {
@@ -87,7 +71,6 @@ namespace my
                 m_deleter(m_data);
             }
         }
-
 
         T* get()
         {
@@ -99,16 +82,10 @@ namespace my
             return m_data;
         }
 
-//        operator T*()
-//        {
-//            return m_data;
-//        }
-
         const T& operator*() const
         {
             return *m_data;
         }
-
 
         T& operator*()
         {

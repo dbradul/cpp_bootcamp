@@ -3,6 +3,8 @@
 #include <bits/stdc++.h>
 #include <fstream>
 #include "array.h"
+#include "forward_list.h"
+#include "list.h"
 
 // Containers (summary):
 //    - use vector as default container
@@ -69,10 +71,23 @@ struct Box
         cout << __PRETTY_FUNCTION__ << endl;
     }
 
+    Box(Box&& obj) /*noexcept*/
+        : value(move(obj.value))
+    {
+        cout << __PRETTY_FUNCTION__ << endl;
+    }
+
     Box& operator=(const Box& obj)
     {
         cout << __PRETTY_FUNCTION__ << endl;
         value = obj.value;
+        return *this;
+    }
+
+    Box& operator=(Box&& obj)
+    {
+        cout << __PRETTY_FUNCTION__ << endl;
+        value = move(obj.value);
         return *this;
     }
 };
@@ -100,6 +115,58 @@ ostream& operator<< (ostream& os, const vector<T>& rhs)
         os << elem;
     }
     os << " }";
+    return os;
+}
+
+template<typename T>
+ostream& operator<< (ostream& os, const my::forward_list<T>& rhs)
+{
+    os << "{";
+    for (const T& elem : rhs)
+    {
+        os << (&elem!=&(*rhs.begin()) ? ", " : "");
+        os << elem;
+    }
+    os << "}";
+    return os;
+}
+
+template<typename T, size_t N>
+ostream& operator<< (ostream& os, const std::array<T, N>& rhs)
+{
+    os << "{";
+    for (const T& elem : rhs)
+    {
+        os << (&elem!=&(*rhs.begin()) ? ", " : "");
+        os << elem;
+    }
+    os << "}";
+    return os;
+}
+
+template<typename T>
+ostream& operator<< (ostream& os, const std::forward_list<T>& rhs)
+{
+    os << "{";
+    for (const T& elem : rhs)
+    {
+        os << (&elem!=&(*rhs.begin()) ? ", " : "");
+        os << elem;
+    }
+    os << "}";
+    return os;
+}
+
+template<typename T>
+ostream& operator<< (ostream& os, const my::list<T>& rhs)
+{
+    os << "{";
+    for (const T& elem : rhs)
+    {
+        os << (&elem!=&(*rhs.begin()) ? ", " : "");
+        os << elem;
+    }
+    os << "}";
     return os;
 }
 
@@ -170,14 +237,54 @@ struct Sum {
     int sum;
 };
 
+template<typename T>
+struct iter_selector
+{
+    const string iter_category;
+};
+
+template<>
+struct iter_selector<std::bidirectional_iterator_tag>
+{
+    const string iter_category = "bidirectional_iterator";
+};
+
+template<>
+struct iter_selector<std::random_access_iterator_tag>
+{
+    const string iter_category = "random_access_iterator";
+};
+
+template<>
+struct iter_selector<std::input_iterator_tag>
+{
+    const string iter_category = "input_iterator";
+};
+
+template<>
+struct iter_selector<std::output_iterator_tag>
+{
+    const string iter_category = "output_iterator";
+};
+
+template<>
+struct iter_selector<std::forward_iterator_tag>
+{
+    const string iter_category = "forward_iterator";
+};
+
+template<class Iter>
+void test_iter(Iter)
+{
+    cout << iter_selector<
+            typename std::iterator_traits<Iter>::iterator_category>().iter_category << endl;
+}
 
 #define ARRAY_SIZE(a) sizeof(a)/sizeof(a[0])
 
 
-
 int main()
 {
-
     // STL = containers <-> itertors <-> algorithms
     {
         std::vector<int> v1 = {1,2,3,4};
@@ -209,8 +316,6 @@ int main()
         sort(v.begin(), v.end());
         //stable_sort
         sort(a.begin(), a.end());
-
-        auto iiittt = a.begin();
 
         cout << v << endl;
 
@@ -423,12 +528,19 @@ int main()
         cout << m << endl;
     }
 
+    cout << "HASH: " << endl;
+
     {
+        float d = 42.0;
         cout << "hash<int>()(42): "     << hash<int>()(42) << endl;
-        cout << "hash<double>()(42): "  << hash<double>()(42) << endl;
+        cout << "hash<double>()(42): "  << hash<float>()(42) << endl;
+        cout << "hash<double>()(42): "  << hash<float>()(42.0000001) << endl;
+        cout << "double->int(42): "     << *(reinterpret_cast<long*>(&d)) << endl;
         cout << "hash<char>()('a'): "   << hash<char>()('a') << endl;
-        cout << "hash<string>()(\"42\"): " << hash<string>()("42") << endl;
+        cout << "hash<string>()(\"42\"): " << hash<string>()("aaaaaaaaaaaaaaaaaaaaaaaaaaa") << endl;
+        cout << "hash<string>()(\"42\"): " << hash<string>()("aaaaaaaaaaaaaaaaaaaaaaaaaab") << endl;
     }
+
 
     {
         // count words
@@ -439,7 +551,7 @@ int main()
 
         while (file >> word)
         {
-            int value = words_count[word];
+            //int value = words_count[word];
             words_count[word]++;
         }
 
@@ -525,7 +637,7 @@ int main()
 
 
         int sum     = accumulate(v.begin(), v.end(), 0);
-        int sum2     = accumulate(v.begin(), v.end(), v[0]);
+        int sum2    = accumulate(v.begin(), v.end(), v[0]);
         int subtr   = accumulate(v.begin(), v.end(), 0, minus<int>());
         int product = accumulate(v.begin(), v.end(), 1, multiplies<int>());
         int product2= accumulate(v.begin(), v.end(), 1, [](const int& a, const int& b){ return a*b; });
@@ -636,7 +748,6 @@ int main()
 
         cout << v5 << endl;
 
-
         // sorting+relational
         {
             std::vector<int> v1{9,2,2,2,3,4,5,6,7,8,1};
@@ -704,9 +815,9 @@ int main()
                 transform(start,
                           end,
                           back_inserter(v2),
-                          [](const int &elem){return Box1{elem, 'a'+rand()%('z'-'a')};});
+                          [](const int &elem){return Box1{elem, static_cast<char>('a'+rand()%('z'-'a'))};});
 
-                copy(v2.begin(), v2.end(), ostream_iterator<Box1>(cout, ", "));
+                ////copy(v2.begin(), v2.end(), ostream_iterator<Box1>(cout, ", "));
 
                 vector<Box1> v_stable_sort = v2;
                 stable_sort(v_stable_sort.begin(), v_stable_sort.end(), Box1Cmp());
@@ -719,9 +830,244 @@ int main()
                 cout << "stable equal to unstable?: " << boolalpha << is_equal << endl;
             }
 
-            return 0;
-//            nth_element
+            //nth_element
         }
+    }
+
+    // iterator categories
+    // iterator creation
+    {
+        // as simple as pointers
+        array<int,3> arr = {1,2,0};
+        cout << &arr[0] << endl;
+        cout << arr.begin() << endl;
+
+        cout << (&arr[0])+3 << endl;
+        cout << arr.end() << endl;
+
+        my::array<int,3> arr2(arr.begin(), arr.size());
+        for(auto it = arr2.begin(); it!=arr2.end(); ++it)
+        {
+            cout << *it << endl;
+        }
+
+        sort(arr2.begin(), arr2.end());
+
+        for(auto elem: arr2)
+        {
+            cout << elem << endl;
+        }
+
+        test_iter(arr2.begin());
+        test_iter(unordered_map<string, int>::iterator());
+        test_iter(map<string, int>::iterator());
+        test_iter(forward_list<int>::iterator());
+
+        test_iter(my::forward_list<int>::iterator());
+        test_iter(my::list<int>::iterator());
+
+
+        //forward_list<int>::iterator.iterator_category;
+        my::forward_list<int> fl;
+
+        fl.push_front(42);
+        fl.push_front(43);
+        fl.push_front(44);
+
+//        while(!fl.empty())
+//        {
+//            cout << fl.front() << endl;
+//            fl.pop_front();
+//        }
+
+
+        for(auto it = fl.begin(); it!=fl.end(); ++it)
+        {
+            cout << *it << endl;
+        }
+
+        for(auto elem: fl)
+        {
+            cout << elem << endl;
+        }
+
+
+        my::forward_list<int> fl2(fl);
+        cout << "COPY CTOR [fl]:" << fl << endl;
+        cout << "COPY CTOR [fl2]:" << fl2 << endl;
+
+        my::forward_list<int> fl3;
+        fl3 = fl2;
+        cout << "COPY ASSIGN [fl2]:" << fl2 << endl;
+        cout << "COPY ASSIGN [fl3]:" << fl3 << endl;
+
+        my::forward_list<int> fl4(move(fl3));
+        cout << "MOVE CTOR [fl3 (src)]:" << fl3 << endl;
+        cout << "MOVE CTOR [fl4 (dst)]:" << fl4 << endl;
+
+        my::forward_list<int> fl5;
+        fl5 = move(fl4);
+        cout << "MOVE ASSIGN [fl4 (src)]:" << fl4 << endl;
+        cout << "MOVE ASSIGN [fl5 (dst)]:" << fl5 << endl;
+
+        fl2 = move(fl5);
+        cout << "MOVE ASSIGN [fl5 (src)]:" << fl5 << endl;
+        cout << "MOVE ASSIGN [fl2 (dst)]:" << fl2 << endl;
+
+//        sort(fl.begin(), fl.end());
+
+        cout << "copy_if: " << endl;
+        copy_if(fl.begin(), fl.end(),
+                arr2.begin(), [](const int& elem){return elem%2==0;});
+
+        for(auto& e: arr2)
+        {
+            cout << e << endl;
+        }
+
+
+        // double-ended list
+        cout << "double-ended list: " << endl;
+        {
+            my::list<int> dlist;
+
+            dlist.push_back(1);
+            dlist.push_back(2);
+            dlist.push_back(3);
+
+            // TEST should pass when methods are implemented
+
+////            assert(dlist.empty()==false);
+
+////            for(auto& elem: dlist)
+////            {
+////                cout << elem << endl;
+////            }
+
+////            cout << "dlist: " << dlist << endl;
+////            my::list<int> dlist2 = dlist;
+////            cout << "dlist2: " << dlist2 << endl;
+
+////            assert(dlist.back() ==dlist2.back());
+////            assert(dlist.front()==dlist2.front());
+
+////            cout << "--reversed--" << endl;
+////            for(auto it = dlist.rbegin(); it!=dlist.rend(); ++it)
+////            {
+////                cout << *it << endl;
+////            }
+
+////            cout << *(dlist.rbegin()) << endl;
+////            assert(dlist.back() ==*(dlist.rbegin()));
+
+////            dlist.pop_back();
+////            cout << "popped back: " << dlist << endl;
+////            assert(dlist.empty()==false);
+
+////            dlist.pop_front();
+////            cout << "popped front: " << dlist << endl;
+////            assert(dlist.empty()==false);
+
+////            dlist.pop_front();
+////            cout << "popped front: " << dlist << endl;
+////            assert(dlist.empty()==true);
+
+////            dlist.push_front(11);
+////            auto it = dlist.begin();
+////            *(it) = 42;
+////            cout << "push & modify: " << dlist << endl;
+
+////            assert(*(  dlist.begin())   ==dlist.front());
+////            assert(*(--dlist.end())     ==dlist.back());
+////            assert(*(  dlist.rbegin())  ==dlist.back());
+////            assert(*(--dlist.rend())    ==dlist.front());
+////            assert(42 == dlist.front());
+
+////            dlist.pop_back();
+////            cout << "popped back: " << dlist << endl;
+////            assert(dlist.empty()==true);
+
+        }
+
+        {
+            cout << "moving/copying our container: " << endl;
+            my::forward_list<Box> flist;
+
+            flist.push_front(Box(1));
+            flist.push_front(Box(2));
+            flist.push_front(Box(3));
+
+            my::forward_list<Box> flist2 = flist;
+            cout << "flist: " << flist << endl;
+            cout << "flist2: " << flist2 << endl;
+
+            cout << "moving/copying std container: " << endl;
+            std::forward_list<Box> flist_std;
+
+            flist_std.push_front(Box(1));
+            flist_std.push_front(Box(2));
+            flist_std.push_front(Box(3));
+
+            std::forward_list<Box> flist_std2 = flist_std;
+            cout << "flist_std [COPY]: " << flist_std << endl;
+            cout << "flist_std2 [COPY]: " << flist_std2 << endl;
+
+            std::forward_list<Box> flist_std3 = move(flist_std);
+            cout << "flist_std [MOVE]: " << flist_std << endl;
+            cout << "flist_std3 [MOVE]: " << flist_std3 << endl;
+
+
+            cout << "moving/copying std container [VECTOR]: " << endl;
+            std::vector<Box> vector_std;
+
+            vector_std.push_back(Box(1));
+            vector_std.push_back(Box(2));
+            vector_std.push_back(Box(3));
+
+            cout << "vector_std [COPY]: " << vector_std << endl;
+            std::vector<Box> vector_std2 = vector_std;
+            cout << "vector_std2 [COPY]: " << vector_std2 << endl;
+
+            std::vector<Box> vector_std3 = move(vector_std);
+            cout << "vector_std [MOVE]: " << vector_std << endl;
+            cout << "vector_std3 [MOVE]: " << vector_std3 << endl;
+
+
+
+            cout << "moving/copying std container [ARRAY]: " << endl;
+            std::array<Box, 5> arr_std;
+
+            arr_std[0] = Box(1);
+            arr_std[1] = Box(2);
+            arr_std[2] = Box(3);
+
+            cout << "arr_std [COPY]: " << arr_std << endl;
+            std::array<Box, 5> arr_std2 = arr_std;
+            cout << "arr_std2 [COPY]: " << arr_std2 << endl;
+
+            cout << "arr_std [MOVE]: " << arr_std << endl;
+            std::array<Box, 5> arr_std3 = move(arr_std);
+            cout << "arr_std3 [MOVE]: " << arr_std3 << endl;
+
+            return 0;
+        }
+
+        cout << "advance: " << endl;
+
+        vector<int> v{ 1, 2, 3 };
+        auto it = v.begin();
+        advance(it, 1);
+
+        cout << (*it == v[1]) << endl;
+        it = v.begin();
+        advance(it, v.size());
+        cout << (it == v.end()) << endl;
+
+        list<int> ll{ 3, 1, 4 };
+        auto it2 = ll.begin();
+        advance(it2, 2);
+        cout << *it2 << endl;
+        cout << (distance(ll.begin(), ll.end())==ll.size()) << endl;
     }
 
     return 0;
