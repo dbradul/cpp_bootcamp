@@ -9,10 +9,12 @@ using namespace std;
 // - lambdas
 // - variadic templates
 // - tuples templates
+
 // - default/delete templates
 // - override/final templates
 // - initializer lists
 // - threads
+// - using
 
 // Links:
 // http://stackoverflow.com/documentation/c%2b%2b/topics
