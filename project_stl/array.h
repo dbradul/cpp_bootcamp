@@ -16,6 +16,11 @@ public:
         std::copy(arr, arr+std::min(n,N), m_data);
     }
 
+    array (std::initializer_list<T> list)
+    {
+        std::copy(list.begin(), list.begin()+std::min(N,list.size()), m_data);
+    }
+
     T operator[](size_t idx)
     {
         return m_data[idx];

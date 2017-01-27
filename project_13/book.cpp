@@ -17,6 +17,7 @@ struct BookImpl
 
     ~BookImpl()
     {
+        cout << __PRETTY_FUNCTION__ << endl;
     }
 
     void print()
@@ -41,7 +42,7 @@ Book::Book(const string& content, const string& title)
 
 Book::~Book()
 {
-    delete m_impl;
+    //delete m_impl;
 }
 
 void Book::print()

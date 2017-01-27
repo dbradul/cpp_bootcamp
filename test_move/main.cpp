@@ -198,8 +198,6 @@ namespace expl_members {
 
 int main(int argc, char* argv[])
 {
-
-
     {
         string y = "abc";
         string x = y;

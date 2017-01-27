@@ -14,7 +14,7 @@ struct Book
 
 private:
 
-    BookImpl* m_impl;
+    std::unique_ptr<BookImpl> m_impl;
 };
 
 

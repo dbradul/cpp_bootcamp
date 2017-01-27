@@ -94,6 +94,27 @@ int main(int argc, char *argv[])
         };
 
         fn(42, "42");
+
+
+        int v = 42;
+        int w = 42;
+        auto f = [=](A a, B b)  mutable //decltype(a*b)
+        {
+            v++;
+            if (a>10)
+            {
+                return a+b;
+            }
+            return 2*a+3*b;
+        };
+
+        cout << f(1) << endl;
+
+        v = 43;
+        cout << f(2) << endl;
+
+
+        return 0;
     }
 
     // initializer list
@@ -102,6 +123,8 @@ int main(int argc, char *argv[])
         {
             cout << elem << endl;
         }
+
+
     }
 
     // tuple
