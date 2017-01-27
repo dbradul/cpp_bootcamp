@@ -5,6 +5,7 @@
 
 #include "unique_ptr.h"
 #include "shared_ptr.h"
+#include "book.h"
 
 // RAII
 // Don't use auto_ptr
@@ -65,7 +66,7 @@ struct A {
         cout << __PRETTY_FUNCTION__ << endl;
     }
 
-    ~A ()
+    virtual ~A ()
     {
         cout << __PRETTY_FUNCTION__ << endl;
     }
@@ -109,6 +110,66 @@ struct Deleter
         delete[] t;
     }
 };
+
+
+
+namespace PImpl
+{
+
+struct Book
+{
+    void print(){}
+
+private:
+    string m_content;
+    //string m_title;
+};
+
+}
+
+
+namespace PImpl_v1
+{
+
+struct Book
+{
+    Book()
+    {
+    }
+
+    ~Book()
+    {
+        delete m_impl;
+    }
+    void print(){}
+
+private:
+    struct BookImpl;
+
+    BookImpl* m_impl;
+};
+
+
+struct BookImpl
+{
+    BookImpl()
+    {
+    }
+
+    ~BookImpl()
+    {
+    }
+
+    void print(){}
+
+private:
+    string m_content;
+    string m_title;
+};
+
+
+}
+
 
 
 template<typename TO, typename FROM>
@@ -179,6 +240,7 @@ void std_weak_pointer()
     //  - caches, observers, cyclic dependencies
     // tightly connected with shared_ptr
     // http://prnt.sc/dzpsij
+
 
     shared_ptr<A> ptr = make_shared<A>(42);
     cout << ptr.use_count() << endl;
@@ -376,6 +438,11 @@ int main(int argc, char *argv[])
 
         //File_handle a("/tmp/null", "a+");
     }
+
+    Book b("B. Stroustrup. C++ language", "Long time ago...");
+    b.print();
+
+    return 0;
 
     std_unique_pointer();
 
