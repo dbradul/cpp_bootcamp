@@ -533,13 +533,15 @@ int main()
     {
         float d = 42.0;
         cout << "hash<int>()(42): "     << hash<int>()(42) << endl;
-        cout << "hash<double>()(42): "  << hash<float>()(42) << endl;
-        cout << "hash<double>()(42): "  << hash<float>()(42.0000001) << endl;
+        cout << "hash<double>()(42): "  << hash<float>()(42.) << endl;
+        cout << "hash<double>()(42): "  << hash<float>()(42.1000001) << endl;
         cout << "double->int(42): "     << *(reinterpret_cast<long*>(&d)) << endl;
         cout << "hash<char>()('a'): "   << hash<char>()('a') << endl;
         cout << "hash<string>()(\"42\"): " << hash<string>()("aaaaaaaaaaaaaaaaaaaaaaaaaaa") << endl;
         cout << "hash<string>()(\"42\"): " << hash<string>()("aaaaaaaaaaaaaaaaaaaaaaaaaab") << endl;
     }
+
+    return 0;
 
 
     {
@@ -852,6 +854,8 @@ int main()
         }
 
         sort(arr2.begin(), arr2.end());
+
+        my::array<int,3> arr3 = {1,2,3,4,5};
 
         for(auto elem: arr2)
         {

@@ -122,11 +122,10 @@ struct Book
 
 private:
     string m_content;
-    //string m_title;
+    string m_title;
 };
 
 }
-
 
 namespace PImpl_v1
 {
@@ -141,6 +140,7 @@ struct Book
     {
         delete m_impl;
     }
+
     void print(){}
 
 private:
@@ -432,6 +432,7 @@ void my_unique_pointer()
 
 int main(int argc, char *argv[])
 {
+
     {
         using namespace RAII;
         ////http://prnt.sc/dzp3f2
@@ -441,8 +442,6 @@ int main(int argc, char *argv[])
 
     Book b("B. Stroustrup. C++ language", "Long time ago...");
     b.print();
-
-    return 0;
 
     std_unique_pointer();
 

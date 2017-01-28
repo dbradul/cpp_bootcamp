@@ -83,6 +83,9 @@ namespace tuple_ns {
         float d;
         bool operator<(const Box& rhs) const
         {
+            // compares n to rhs.n,
+            // then s to rhs.s,
+            // then d to rhs.d
             return std::tie(n, s, d) < std::tie(rhs.n, rhs.s, rhs.d);
         }
     };
@@ -123,6 +126,9 @@ namespace tuple_ns {
         os << trailing_token;
     }
 
+
+
+
     template<typename... Tp>
     ostream& operator<<(ostream& os, const std::tuple<Tp...>& t)
     {
@@ -137,7 +143,9 @@ namespace tuple_ns {
 }
 
 
+
 namespace initlzr_list {
+
 
     template<typename T, size_t N>
     class array
@@ -223,6 +231,13 @@ void debug_print<double>(const double& value)
 }
 
 
+//void debug_print(const double& value)
+//{
+//    cout << setprecision(15) << value;// << endl;
+//}
+
+
+
 void print_safe()
 {
     cout << endl;
@@ -268,6 +283,24 @@ void wrapper(const T1& e1, T2& e2)
     func(e1, e2);
 }
 
+//template <typename T1, typename T2>
+//void wrapper(const T1& e1, T2& e2)
+//{
+//    func(e1, e2);
+//}
+
+//template <typename T1, typename T2>
+//void wrapper(T1& e1, const T2& e2)
+//{
+//    func(e1, e2);
+//}
+
+//template <typename T1, typename T2>
+//void wrapper(const T1& e1, const T2& e2)
+//{
+//    func(e1, e2);
+//}
+
 
 //template <typename T1, typename T2>
 //void wrapper(T1&& e1, T2&& e2) {
@@ -309,6 +342,7 @@ int main(int argc, char *argv[])
         f5();
         cout << a << endl;
 
+
         auto f6 = [&a]() { return a++; };
         auto f7 = [=,&a]() /*mutable*/ { return a++; };
         auto f7_2 = [&,a]() mutable { return a++; };
@@ -326,6 +360,7 @@ int main(int argc, char *argv[])
         cout << b << endl;
         cout << f9() << endl;
         cout << b << endl;
+
 
         int value = 5;
         auto timesN = [value](int N) { return N * value; };
@@ -361,6 +396,9 @@ int main(int argc, char *argv[])
             }
             else
             {
+                //return 43;
+                //return 43l;
+                //return 43.42;
                 return '4';
             }
         };
@@ -394,6 +432,8 @@ int main(int argc, char *argv[])
         print_safe(1, 42.000000000001, true, string("qwerty"));
     }
 
+//    return 0;
+
     // tuple
     {
         using namespace tuple_ns;
@@ -423,9 +463,11 @@ int main(int argc, char *argv[])
              << " val5: " << get<4>(t2)
              << endl;
 
+
         print(t2);
 
         // tie
+
         // unpack from tuple
         auto t3 = foo();
         int t3_v1;
@@ -433,6 +475,7 @@ int main(int argc, char *argv[])
         tie(t3_v1, t3_v2) = t3;
         cout << "t3_v1: " << t3_v1 << endl;
         cout << "t3_v2: " << t3_v2 << endl;
+
 
         auto p = pair<double, string>(2.71, "e");
         double p_v1;
@@ -442,6 +485,10 @@ int main(int argc, char *argv[])
         cout << "p_v2: " << p_v2 << endl;
 
         // compound comparision
+        // TODO: doesn't work
+//        bool less_than = tie(42, p_v2)
+//                       < tie(42, p_v2);
+
         bool less_than = tie(p_v1, p_v2)
                        < tie(p_v1, p_v2);
         cout << "less_then: " << less_than << endl;
@@ -457,21 +504,24 @@ int main(int argc, char *argv[])
         cout << "BEFORE (from): "   << tie(p_v1,  p_v2,  t3_v1, t3_v2) << endl;
         tie(p2_v1, p2_v2, p2_v3, p2_v4) = tie(p_v1, p_v2, t3_v1, t3_v2);
         cout << "AFTER (to): " << tie(p2_v1, p2_v2, p2_v3, p2_v4) << endl;
+
     }
 
     {
         using namespace  pf;
         using namespace tuple_ns;
 
-        vector<Box> v;
-        //v.push_back(Box(1,"abc",42.));
-        Box b = {1, "asd", 42.};
-        v.emplace_back(b);
-        v.emplace_back(1, "asd", 42.);
+
+//        vector<Box> v;
+//        //v.push_back(Box(1,"abc",42.));
+//        string s = "avc";
+//        v.emplace_back(1,"asd",42.);
 
         int x = 42;
         double y = 21.;
         wrapper(42, y);
+
+        //wrapper(17, y);
     }
 
     return 0;
