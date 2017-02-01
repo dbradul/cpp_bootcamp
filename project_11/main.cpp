@@ -1,7 +1,9 @@
 #include <iostream>
 #include <type_traits>
 #include <vector>
+#include <map>
 #include <cstring>
+#include <memory>
 
 //#define NDEBUG
 #include <cassert>
@@ -9,23 +11,28 @@
 using namespace std;
 
 // asserts best practices:
+//  -- Used for problems that should be fixed, not handled
 //  -- No side effects: shouldn't use real code as asserts can be disabled. Only vars
 //  -- shouldn't handle expected run-time errors as asserts could be disabled
+//  -- Run both debug and release builds
 
 // exceptions best practices:
-//  -- throw by value, catch by ref
+//  -- throw by value, catch by ref (avoid copying and memory allocation)
+//  -- don't throw basic types (not informative)
 //  -- rethrow with `throw;`
 //  -- absorb in dtors
 //  -- swap and delete operators shoudn't throw exceptions
 //  -- ctor can (and sometimes must) throw in constructor. Has to do cleanup on its own.
 //  -- exception safety levels
-//  -- don't use exception specification (throw(...))
+//  -- don't use exception specification (throw()), use noexcept judishiously (move)
 
 // Links:
 // http://ideone.com/I7irGR
 // http://www.gotw.ca/publications/mill22.htm
 // http://www.acodersjourney.com/2016/08/top-15-c-exception-handling-mistakes-avoid/
 // http://www.artima.com/intv/handcuffsP.html
+// http://www.stroustrup.com/except.pdf
+// http://bit.ly/2jUtE8N
 
 void printTerminated()
 {
@@ -38,15 +45,10 @@ void printUnexpected()
     cout << "Unexpected!" << endl;
 }
 
-void handleUnexpected()
-{
-    cout << "Unexpected (h)!" << endl;
-    throw;
-}
-
 void execute_static() noexcept
 {
-    if (noexcept(execute_static())) throw "Ha!";
+    //if (noexcept(execute_static()))
+        throw "Ha!";
 }
 
 void execute_dynamic() throw()
@@ -64,19 +66,9 @@ namespace asserts
 
        return t1 + t2;
     }
-
-    int f()
-    {
-        return 42;
-    }
-
-    int write(int, void*)
-    {
-        return 1;
-    }
 }
 
-namespace exception_handling
+namespace exception_handling_implicit_casting
 {
     void foo()
     {
@@ -86,6 +78,16 @@ namespace exception_handling
     void foo_int()
     {
         throw 42;
+    }
+
+    void foo_double()
+    {
+        throw 42.;
+    }
+
+    void foo_string()
+    {
+        throw "42";
     }
 }
 
@@ -100,7 +102,7 @@ namespace exception_handling_polymorphism
         My_Exception(const My_Exception& d) : exception(d)
             {cout << __PRETTY_FUNCTION__ << endl;}
 
-        virtual char const * what() const throw ()
+        char const * what() const throw () override
         {
             cout << __PRETTY_FUNCTION__ << endl;
             return "Something bad happend (base).";
@@ -115,7 +117,7 @@ namespace exception_handling_polymorphism
         My_Exception_derived(const My_Exception_derived& d) : My_Exception(d)
             {cout << __PRETTY_FUNCTION__ << endl;}
 
-        virtual char const * what() const throw ()
+        char const * what() const throw () override
         {
             cout << __PRETTY_FUNCTION__ << endl;
             return "Something bad happend (derived).";
@@ -128,238 +130,524 @@ namespace exception_handling_polymorphism
     }
 }
 
-namespace exception_ctor
+
+namespace status_code
 {
-    class MyString
+    enum ErrCode
     {
-        private:
-        char* m_data;
+        OK = 0,
+        ERR_OUT_OF_MEMORY,
+        ERR_DEVICE_IS_BUSY
+    };
 
-        public:
+    // W/o exceptions
+    //----------------------------------------
+    ErrCode foo()
+    {
+        return ERR_OUT_OF_MEMORY;
+    }
 
-        MyString()
-            : m_data(nullptr)
+    ErrCode foo_2()
+    {
+        return ERR_DEVICE_IS_BUSY;
+    }
+
+    ErrCode bar()
+    {
+        ErrCode result = foo();
+
+        if (OK != result)
         {
-            cout << __PRETTY_FUNCTION__ << endl;
+            return result;
+        }
+        else if (OK != (result = foo_2()))
+        {
+            return result;
+        }
+        else
+        {
+            //...
         }
 
-        MyString(const char* data)
-            : m_data(strdup(data))
+        return result;
+    }
+
+    ErrCode baz()
+    {
+        ErrCode result = bar();
+
+        if (OK != result)
         {
-            cout << __PRETTY_FUNCTION__ << endl;
+            return result;
+        }
+        {
+            //...
         }
 
-        ~MyString()
+        return result;
+    }
+
+    void func()
+    {
+        ErrCode result = bar();
+
+        if (ERR_OUT_OF_MEMORY == result)
         {
-            cout << __PRETTY_FUNCTION__ << endl;
-            cleanup();
+            cout << "error: out of memory" << endl;
         }
+        else if (ERR_DEVICE_IS_BUSY == result)
+        {
+            cout << "error: device is busy" << endl;
+        }
+        else
+        {
+            //...
+        }
+    }
+}
+
+
+namespace exception_handling
+{
+    // With exceptions
+    //-----------------------------------------
+    int foo()
+    {
+        throw bad_alloc();
+    }
+
+    int foo_2()
+    {
+        throw runtime_error("Device is busy");
+    }
+
+    int bar()
+    {
+        foo();
+        foo_2();
+        //...
+    }
+
+    int baz()
+    {
+        bar();
+        //...
+    }
+
+    void func()
+    {
+        try
+        {
+            baz();
+            // ...
+        }
+        catch (bad_alloc& ex)
+        {
+            cout << ex.what() << endl;
+        }
+        catch (runtime_error& ex)
+        {
+            cout << ex.what() << endl;
+        }
+        catch(...)
+        {
+            cout << "Unknown error: something is not quite right." << endl;
+        }
+    }
+}
+
+
+namespace exception_handling_stack_unwinding
+{
+
+    struct A
+    {
+         A() { cout << __PRETTY_FUNCTION__ << endl; }
+        ~A() { cout << __PRETTY_FUNCTION__ << endl; }
+    };
+
+    struct B
+    {
+         B() { cout << __PRETTY_FUNCTION__ << endl; }
+        ~B() { cout << __PRETTY_FUNCTION__ << endl; }
+    };
+
+    struct C
+    {
+         C() { cout << __PRETTY_FUNCTION__ << endl; }
+        ~C() { cout << __PRETTY_FUNCTION__ << endl; }
+    };
+
+    struct D
+    {
+         D() { cout << __PRETTY_FUNCTION__ << endl; }
+        ~D() { cout << __PRETTY_FUNCTION__ << endl; }
+    };
+
+    struct E
+    {
+         E() { cout << __PRETTY_FUNCTION__ << endl; }
+        ~E() { cout << __PRETTY_FUNCTION__ << endl; }
+    };
+
+    struct F
+    {
+         F() { cout << __PRETTY_FUNCTION__ << endl; }
+        ~F() { cout << __PRETTY_FUNCTION__ << endl; }
+    };
+
+
+    void foo () {
+        D d;
+        E e;
+        throw 42;
+        F f;
+    }
+
+    void bar ()
+    {
+        A a;
+        try
+        {
+            B b;
+            foo ();
+            C c;
+        }
+        catch (const int& i)
+        {
+            throw i;
+        }
+    }
+}
+
+namespace exception_handling_ctor_dtor
+{
+
+    class String
+    {
+    private:
+        char* m_buffer          = nullptr;
+        size_t* m_refCounter    = nullptr;
 
         void cleanup()
         {
             cout << __PRETTY_FUNCTION__ << endl;
-            if (m_data)
-            {
-                delete[] m_data;
-            }
+            delete [] m_buffer;
+            delete m_refCounter;
+            m_buffer = nullptr;
+            m_buffer = nullptr;
         }
 
-        MyString(const MyString& rhs)
+        void attach()
+        {
+            (*m_refCounter)++;
+        }
+
+        void detach()
+        {
+            if ((*m_refCounter) > 0)
+            {
+                if (--(*m_refCounter) == 0)
+                {
+                    cleanup();
+                }
+            }
+
+            assert((*m_refCounter) >= 0);
+        }
+
+    public:
+
+        String()
+            : m_buffer(nullptr)
+            , m_refCounter(new size_t(0))
         {
             cout << __PRETTY_FUNCTION__ << endl;
-            // allocate and throw in case of failure
-            m_data = new char[strlen(rhs.m_data)+1];
+            attach();
+        }
 
-            strcpy(m_data, rhs.m_data);
+        String(const char* value)
+        try
+            : m_buffer(new char[strlen(value)+1])
+            , m_refCounter(new size_t(0))
+        {
+            cout << __PRETTY_FUNCTION__ << endl;
+            strcpy(m_buffer, value);
+            attach();
+        }
+        catch(const bad_alloc& ex)
+        {
+            cout << "Out of memory exception" << endl;
             cleanup();
-            throw runtime_error("Copy failed!");
         }
 
-        MyString& operator=(const MyString& rhs)
+        String(const String& rhs)
+            : m_buffer(rhs.m_buffer)
+            , m_refCounter(rhs.m_refCounter)
         {
-            cout << __PRETTY_FUNCTION__ << endl;
-            if (&rhs!=this)
-            {
-                MyString tmp(rhs);
-                swap(*this, tmp);
-            }
+            attach();
+        }
 
+        String& operator= (const String& rhs)
+        {
+            if (&rhs != this)
+            {
+                String tmp(rhs);
+                swap(tmp);
+            }
             return *this;
         }
 
-        void swap(MyString& from, MyString& to) noexcept
+        String& operator= (const char* value)
         {
-            using std::swap;
-            swap(from.m_data, to.m_data);
+            String(value).swap(*this);
+            return *this;
+        }
+
+        ~String()
+        {
+            cout << __PRETTY_FUNCTION__ << endl;
+            detach();
+        }
+
+        void swap(String& other)
+        {
+            std::swap(m_buffer,     other.m_buffer);
+            std::swap(m_refCounter, other.m_refCounter);
+        }
+
+        char& operator[](size_t index)
+        {
+            return m_buffer[index];
+        }
+
+        const char& operator[](size_t index) const
+        {
+            return m_buffer[index];
+        }
+
+        size_t count() const
+        {
+            return *m_refCounter;
+        }
+
+        void set_elem(size_t index, char value)
+        {
+            if (count()>1)
+            {
+                String tmp(m_buffer);
+                std::swap(*this, tmp);
+            }
+            m_buffer[index] = value;
+        }
+
+        const char *data()const
+        {
+            return m_buffer;
         }
     };
-}
 
 
-namespace exception_dtor
-{
+    template <class T>
+    class COWPtr
+    {
+    private:
+        shared_ptr<T> m_sp;
+
+        void copy()
+        {
+            T* tmp = m_sp.get();
+
+            if( !( tmp == 0 || m_sp.use_count() == 1 ) )
+            {
+                m_sp = make_shared<T>(*tmp);
+            }
+        }
+
+    public:
+        COWPtr(T* t) : m_sp(t) {}
+
+        COWPtr(const shared_ptr<T>& refptr) : m_sp(refptr) {}
+
+        COWPtr(const COWPtr& rhs) : m_sp(rhs.m_sp) {}
+
+        COWPtr(COWPtr&& rhs) : m_sp(move(rhs.m_sp)) {}
+
+        COWPtr& operator=(const COWPtr& rhs)
+        {
+            COWPtr(rhs).swap(*this);
+            return *this;
+        }
+
+        COWPtr& operator=(COWPtr&& rhs)
+        {
+            COWPtr(move(rhs)).swap(*this);
+            return *this;
+        }
+
+        void swap(COWPtr& lhs, COWPtr& rhs)
+        {
+            ::swap(lhs.m_sp, rhs.m_sp);
+        }
+
+        T& operator*()
+        {
+            copy();
+            return *m_sp;
+        }
+
+        T* operator->()
+        {
+            copy();
+            return m_sp.operator->();
+        }
+
+        const T& operator*() const
+        {
+            return *m_sp;
+        }
+
+        const T* operator->() const
+        {
+            return m_sp.operator->();
+        }
+    };
+
+
+    struct DB
+    {
+        DB()
+        {
+            cout << __PRETTY_FUNCTION__ << endl;
+        }
+
+        ~DB()
+        {
+            cout << __PRETTY_FUNCTION__ << endl;
+        }
+
+        void open(const string& url)
+        {
+
+        }
+
+        void close()
+        {
+            throw runtime_error("DB file is corrupted");
+        }
+    };
+
+
     class DBConnection
     {
+        DB* m_pDB;
 
         public:
 
         DBConnection()
         {
+        }
+
+        DBConnection(const string& url)
+            : m_pDB(new DB())
+        {
             cout << __PRETTY_FUNCTION__ << endl;
+
+            if (url.empty())
+            {
+                //delete m_pDB;
+                throw runtime_error("URL is empty");
+            }
         }
 
         ~DBConnection()
         {
-//            try
-//            {
-                // close resources
-                throw "From dtor!";
-//            }
-//            catch(const exception & ex)
-//            {
-//                // Log
-//                cout << __PRETTY_FUNCTION__ << ex.what() << endl;
-//            }
-//            catch(...)
-//            {
-//                // Log
-//                cout << __PRETTY_FUNCTION__ << ": " << "..." << endl;
-//            }
+            cout << __PRETTY_FUNCTION__ << endl;
+            try
+            {
+                m_pDB->close();
+                delete m_pDB;
+            }
+            catch(const exception & ex)
+            {
+                // Log
+                cout << "Fatal error: " << ex.what() << endl;
+            }
+            catch(...)
+            {
+                // Log
+                cout << "Fatal error: " << ": " << "..." << endl;
+            }
+        }
+    };
+}
+
+namespace exception_safety_levels {
+
+    struct Box
+    {
+        int value;
+
+        Box()
+            : value(0)
+        {
+            cout << __PRETTY_FUNCTION__ << endl;
+        }
+
+        Box(int value_)
+            : value(value_)
+        {
+            cout << __PRETTY_FUNCTION__ << endl;
+        }
+
+        Box(const Box& obj)
+            : value(obj.value)
+        {
+            //throw runtime_error("Failed copy");
+            cout << __PRETTY_FUNCTION__ << endl;
+        }
+
+        Box(Box&& obj) noexcept
+            : value(move(obj.value))
+        {
+            cout << __PRETTY_FUNCTION__ << endl;
+        }
+
+        Box& operator=(const Box& obj)
+        {
+            cout << __PRETTY_FUNCTION__ << endl;
+            value = obj.value;
+            return *this;
+        }
+
+        Box& operator=(Box&& obj)
+        {
+            cout << __PRETTY_FUNCTION__ << endl;
+            value = move(obj.value);
+            return *this;
         }
     };
 
+    ostream& operator<< (ostream& os, const Box& box)
+    {
+        os << "{";
+        os << "value: " << box.value;
+        os << "}";
+    }
+
+    template<typename T>
+    ostream& operator<< (ostream& os, const vector<T>& rhs)
+    {
+        os << rhs.size() << ", " << rhs.capacity() << ": { ";
+        for (const T& elem : rhs)
+        {
+            os << (&elem!=&rhs[0] ? ", " : "");
+            os << elem;
+        }
+        os << " }";
+        return os;
+    }
 }
-
-namespace exception_safety
-{
-//    class File
-//    {
-//        private:
-//            FILE* m_file;
-//        public:
-//        ~File()
-//        {
-//            if (m_file)
-//            {
-//                fclose (m_file);
-//            }
-//        }
-//    };
-}
-
-
-
-namespace exception_motivation
-{
-    // W/o exceptions
-    //----------------------------------------
-    int foo()
-    {
-        return -1;
-    }
-
-    int foo_2()
-    {
-        return -2;
-    }
-
-    int bar()
-    {
-        int result = foo();
-        if (0 != result)
-        {
-            return result;
-        }
-        else
-        {
-            //...
-        }
-
-        result = foo_2();
-        if (0 != result)
-        {
-            return result;
-        }
-        else
-        {
-            //...
-        }
-
-        return 0;
-    }
-
-    int baz()
-    {
-        int result = bar();
-        if (0 != result)
-        {
-            return result;
-        }
-        {
-            //...
-        }
-
-        return 0;
-    }
-
-    void func()
-    {
-        int result = bar();
-        if (-1 == result)
-        {
-            cout << "error: -1" << endl;
-        }
-        else if (-2 == result)
-        {
-            cout << "error: -2" << endl;
-        }
-    }
-
-
-    // With exceptions
-    //-----------------------------------------
-
-    //int foo()
-    //{
-    //    throw "Error";
-    //}
-
-    //int foo_2()
-    //{
-    //    throw 42;
-    //}
-
-    //int bar()
-    //{
-    //    foo();
-    //    foo_2();
-    //    //...
-    //}
-
-    //int baz()
-    //{
-    //    bar();
-    //    //...
-    //}
-
-    //void func()
-    //{
-    //    try
-    //    {
-    //        baz();
-    //        // ...
-    //    }
-    //    catch (int value)
-    //    {
-    //        cout << value << endl;
-    //    }
-    //    catch (const char* value)
-    //    {
-    //        cout << value << endl;
-    //    }
-    //}
-}
-
 
 int main()
 {
@@ -369,28 +657,26 @@ int main()
         // static
         #define ASSERT_CONCAT_(a, b) a##b
         #define ASSERT_CONCAT(a, b) ASSERT_CONCAT_(a, b)
-        #define ct_assert(e) enum { ASSERT_CONCAT(assert_line_, __LINE__) = 1/(!!(e)) }
+        #define my_static_assert(e) enum { ASSERT_CONCAT(assert_line_, __LINE__) = 1/(!!(e)) }
 
-        ct_assert(sizeof(int*) * 8 == 64);
+        my_static_assert(sizeof(int*) * 8 == 64);
 
-        static_assert(sizeof(int*) * 8 == 64, "64-bit platform!");
-        static_assert(true == 1 && false == 0, "Who is on duty today?");
+        static_assert(sizeof(int*) * 8 == 64, "Should only compile on 64-bit platform!");
+        static_assert(true == 1 && false == 0, "What?");
 
         add(34, 56);
 //        add(34, 0);
 
         // runtime
-        int bytes_to_write = f();
-        assert (bytes_to_write>=0 && "Something went wrong!");
+//        size_t bytes_to_write = 1024;
+//        while (bytes_to_write>0)
+//        {
+//            int bytes_written = write(fromBuffer, toBuffer, bytes_to_write);
+//            assert (bytes_to_write >= bytes_written);
+//            bytes_to_write -= bytes_written;
+//        }
 
-        while (bytes_to_write>0)
-        {
-            int bytes_written = write(bytes_to_write, nullptr);
-            assert (bytes_written >= 0);
-            //assert ((bytes_written = write(bytes_to_write, nullptr)) >= 0);
-            bytes_to_write -= bytes_written;
-        }
-
+        // what's wrong?
         FILE * pFile;
         pFile = fopen ("myfile.txt","w");
         assert (pFile!=NULL);
@@ -399,6 +685,25 @@ int main()
     }
 
     {
+        using namespace status_code;
+
+        func();
+
+        // PROS:
+        // simple
+        // can easily transfer over libs/systems/languages bounaderies
+
+        // CONS:
+        // can be ignored
+        // mix actual and error handling code
+        // chain from source and destinations can be easily broken (<= ignorance)
+    }
+
+    {
+        using namespace exception_handling;
+
+        func();
+
         // PROS:
         //  can't be silently ignored
         //  propagate automatically
@@ -406,17 +711,21 @@ int main()
         //  constructor and operators error
 
         // CONS:
-        //  performance and memory impact
-        //  comlicated changes
+        //  binary size impact
+        //  not easy to reason
+    }
 
-        using namespace exception_handling;
+    {
+        using namespace exception_handling_implicit_casting;
 
-        set_terminate(&printTerminated);
 
+        // exceptions don't support implcit casting, but support inheritance
         try
         {
             foo();
             foo_int();
+            foo_double();
+            foo_string();
         }
         catch(int i)
         {
@@ -430,10 +739,22 @@ int main()
         {
             cout << "Exception: " << i << endl;
         }
-//        catch(const char* c)
-//        {
-//            cout << "Exception: " << c << endl;
-//        }
+        catch(double d)
+        {
+            cout << "Exception: " << d << endl;
+        }
+        catch(const char* c)
+        {
+            cout << "Exception: " << c << endl;
+        }
+        catch(string s)
+        {
+            cout << "Exception: " << s << endl;
+        }
+        catch(const string& s)
+        {
+            cout << "Exception: " << s << endl;
+        }
         catch(...)
         {
             cout << "Exception: (default)" << endl;
@@ -442,23 +763,54 @@ int main()
 
 
     {
-        using namespace exception_handling_polymorphism;
+        using namespace exception_handling_stack_unwinding;
 
-        //foo();
+        //set_terminate(&printTerminated);
+
+        ////bar();
+    }
+
+
+
+    {
+        using namespace exception_handling_ctor_dtor;
+
+
+        cout << "==== exception in ctor ===" << endl;
 
         try
         {
-            foo();
+            string url;// = "127.0.0.1:8080;storage.sch;admin";
+            DBConnection db_conn (url);
+
+            cout << "Is about to call ~DBConnetion()\n";
         }
-//        catch(My_Exception ex)
-//        {
-//            cout << "Exception (value): " << ex.what() << endl;
-//        }
-        // catch by ref
-        catch(My_Exception& ex)
+        catch(exception& ex)
         {
-            cout << "Exception (ref): " << ex.what() << endl;
+            cout << "Exception (DB): " << ex.what() << endl;
         }
+        cout << "Passed through\n";
+
+//        try
+//        {
+//            DBConnection db_conn;
+
+//            cout << "Throwing 42...\n";
+//            throw 42;
+//            //...
+//        }
+//        catch(...)
+//        {
+//            std::cout << "exception_dtor (catch)" << std::endl;
+//        }
+//        cout << "Passed through\n";
+
+    }
+
+    {
+        using namespace exception_handling_polymorphism;
+
+        //foo();
 
         try
         {
@@ -472,7 +824,22 @@ int main()
         {
             cout << "Exception (ref, derived): " << ex.what() << endl;
         }
+        //return 0;
 
+
+        try
+        {
+            foo();
+        }
+        catch(My_Exception ex)
+        {
+            cout << "Exception (value): " << ex.what() << endl;
+        }
+        // catch by ref
+        catch(My_Exception& ex)
+        {
+            cout << "Exception (ref): " << ex.what() << endl;
+        }
 
         // rethrow
         cout << "==== rethrow ===" << endl;
@@ -494,65 +861,78 @@ int main()
         }
     }
 
-
     {
-        using namespace exception_dtor;
+        cout << "==== terminated ===" << endl;
 
-        cout << "==== exception in dtor ===" << endl;
-        try
-        {
-            DBConnection db_conn;
-        }
-        catch(...)
-        {
-            std::cout << "exception_dtor (catch)" << std::endl;
-        }
+        set_terminate(&printTerminated);
 
-
-        try
-        {
-            DBConnection db_conn;
-            throw 42;
-            //...
-        }
-        catch(...)
-        {
-            std::cout << "exception_dtor (catch-2)" << std::endl;
-        }
-    }
-
-
-    {
-        using namespace exception_ctor;
-
-        cout << "==== exception in ctor ===" << endl;
-
-        try
-        {
-            MyString s1("test string");
-
-            MyString s2 = s1;
-        }
-        catch(exception& ex)
-        {
-            cout << "Exception: " << ex.what() << endl;
-        }
+        //throw runtime_error("xxx");
     }
 
     try
     {
-        cout << "==== unexpected exception ===" << endl;
+        cout << "==== unexpected exception (USE) ===" << endl;
 
-        set_terminate(&printTerminated);
-        set_unexpected(&printUnexpected);
-        execute_static();
-        //execute_dynamic();
+        //execute_static();
     }
     catch(...)
     {
         cout << "Cought!" << endl;
     }
 
-    cout << "Continued" << endl;
+//    try
+//    {
+//        cout << "==== unexpected exception (DON'T USE) ===" << endl;
+//        set_unexpected(&printUnexpected);
+//        execute_dynamic();
+//    }
+//    catch(...)
+//    {
+//        cout << "Cought!" << endl;
+//    }
+
+    // exception safety levels
+    {
+        using namespace  exception_safety_levels;
+        // No-trow: swap, dtor, noexcept
+        // Strong: copy before modification => copy-n-swap, RAII
+        // Basic : keep invariant (changed, but valid) => RAII
+        // No-guarantee: avoid!!!
+
+        vector<Box> v;// = {{1}, {2}, {3}};
+        v.reserve(4);
+        v.emplace_back(1);
+        v.emplace_back(2);
+        v.emplace_back(3);
+
+        try
+        {
+            Box box{4};
+            v.push_back({4});
+//            v.push_back({5});
+//            v.push_back({6});
+//            v.push_back({7});
+//            v.push_back({8});
+        }
+        catch(exception& ex)
+        {
+            cout << ex.what() << endl;
+        }
+
+        cout << v << endl;
+
+        // what about vector::pop_back and back
+    }
+
+    // strategies
+    {
+        //  Report: Report an error (e.g., write throw) wherever a function detects an error that it cannot resolve itself and that makes it impossible for the function to continue execution.
+        //  Handle: Handle an error (e.g., write a catch that doesn't rethrow the same or another exception or emit another kind of error code) in the places that have sufficient knowledge to handle the error.
+        //  Absorb: Absorb errors in the bodies of destructors and deallocation operations.
+        //  Translate: Translate an error (e.g., write a catch that does rethrow a different exception or emits another kind of error code) on layer boundaries.
+        //  Propagate: In the rest of cases.
+    }
+
+    cout << "PASSED" << endl;
 }
 
