@@ -8,6 +8,7 @@
 #include <queue>
 #include <random>
 #include <thread>
+#include <algorithm>
 
 #include <cstdlib>
 #include <ctime>
@@ -131,15 +132,38 @@ namespace cpp_threads
         thread5.join();
         std::cout << a << '\n'; //Outputs 10
 
+
+        // Create and execute the thread
+        vector<std::thread> v_th;
+
+        for(int i = 0; i<100; ++i)
+        {
+            v_th.emplace_back(foo, i ); // Pass 10 to free function
+            //thread.join();
+        }
+
+        for_each(v_th.begin(), v_th.end(), [](std::thread& th)
+        {
+            if (th.joinable())
+            {
+                th.join();
+            }
+        });
+
         return 0;
     }
 
-    unsigned int square(unsigned int i){
+}
+
+
+namespace async
+{
+    unsigned int square(unsigned int i)
+    {
         return i*i;
     }
 
-
-    int run2()
+    int run()
     {
         auto f = std::async(std::launch::async, square, 8);
         std::cout << "square currently running\n"; //do something while square is running
@@ -149,50 +173,8 @@ namespace cpp_threads
 
 namespace consumer_producer {
 
-
-
-}
-
-int main ()
-{
-//   pthread_t threads[NUM_THREADS];
-//   int retCode;
-//   int i;
-
-//   for (i=0; i < NUM_THREADS; ++i)
-//   {
-//      cout << "main() : creating thread, " << i << endl;
-//      retCode = pthread_create(&threads[i], NULL, PrintHello, (void *)i);
-
-//      if (retCode)
-//      {
-//         cout << "Error:unable to create thread," << retCode << endl;
-//         exit(-1);
-//      }
-
-//      cout << "Is about to cancel" << endl;
-//      //pthread_cancel(rc);
-//   }
-
-//   pthread_exit(NULL);
-
-//    {
-//        using namespace pthreads;
-//        run();
-//    }
-
-
+    void run()
     {
-        using namespace cpp_threads;
-        run();
-
-        run2();
-    }
-
-    {
-
-        using namespace consumer_producer;
-
         std::condition_variable cond;
         std::mutex mtx;
         std::queue<int> intq;
@@ -268,6 +250,29 @@ int main ()
         producer.join();
 
         std::cout << "Example Completed!" << std::endl;
+    }
+}
 
+
+int main ()
+{
+    {
+        using namespace pthreads;
+        run();
+    }
+
+    {
+        using namespace cpp_threads;
+        run();
+    }
+
+    {
+        using namespace async;
+        run();
+    }
+
+    {
+        using namespace consumer_producer;
+        run();
     }
 }
