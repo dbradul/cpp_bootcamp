@@ -21,14 +21,14 @@ public:
         return true;
     }
 
-    void push(const T& elem)
+    void push_back(const T& elem)
     {
 
     }
 
-    T& top()
+    T& front()
     {
-        return T();
+        //...
     }
 
     void pop()
