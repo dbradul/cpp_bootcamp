@@ -1,6 +1,6 @@
 #include <iostream>
 #include <array>
-
+#include <cassert>
 
 using namespace std;
 
@@ -18,7 +18,7 @@ public:
 
     bool empty() const
     {
-        return false;
+        return true;
     }
 
     void push(const T& elem)
@@ -37,8 +37,13 @@ public:
     }
 };
 
+
+
 int main(int argc, char *argv[])
 {
-    cout << "Hello World!" << endl;
+    RingBuffer<int, 1024> ringBuffer;
+
+    assert(ringBuffer.empty()==true);
+
     return 0;
 }

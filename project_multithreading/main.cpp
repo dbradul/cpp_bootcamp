@@ -9,6 +9,7 @@
 #include <random>
 #include <thread>
 #include <algorithm>
+#include <chrono>
 
 #include <cstdlib>
 #include <ctime>
@@ -17,33 +18,63 @@
 
 
 using namespace std;
+using namespace std::chrono;
+
+struct profiler
+{
+    steady_clock::time_point start = steady_clock::now();
+
+    ~profiler()
+    {
+        cout << duration_cast<milliseconds>
+                (steady_clock::now() - start).count() << " ms" << endl;
+    }
+};
 
 namespace pthreads
 {
     typedef struct {
         char c;
-        long n;
-        long ret_value;
+        unsigned long n;
+        unsigned long ret_value;
     } param;
 
-    static void wait_thread( void )
+    pthread_mutex_t lock;
+
+//    static void wait_thread( void )
+//    {
+//        usleep(500*1000);
+//    }
+
+    static long long sum_N( unsigned long n )
     {
-        usleep(500*1000);
+        long long result = 0;
+
+        for (unsigned long i = 0; i < n; ++i )
+        {
+            if (i%2==0)
+            {
+                result += i;
+            }
+            //wait_thread();
+        }
+
+        cout << "Thread -1" << ": " << result << endl;
+
+        return result;
     }
 
     static void* thread_func( void* vptr_args )
     {
-        unsigned i;
-
         param* p = static_cast<param*>(vptr_args);
 
-        for( i = 0; i < 10; ++i )
-        {
-            cout << p->n;
-            wait_thread();
-        }
+        p->ret_value = sum_N(p->n);
 
-        p->ret_value = p->c * p->n;
+        //pthread_mutex_lock(&lock);
+
+        cout << "Thread " << pthread_self() << ": " << p->ret_value << endl;
+
+        //pthread_mutex_unlock(&lock);
 
         return p;
     }
@@ -55,19 +86,31 @@ namespace pthreads
         pthread_t threads[NUM_THREADS];
         param params[NUM_THREADS];
 
-        unsigned i;
-
-        for (i=0; i < NUM_THREADS; ++i)
+        if (pthread_mutex_init(&lock, NULL) != 0)
         {
-            params[i] = {'a' + i, i};
+            printf("\n mutex init failed\n");
+            return 1;
+        }
 
-            if ( pthread_create( &threads[i], nullptr, thread_func, &params[i] ) )
+
+        {
+            profiler p;
+
+            for (size_t i=0; i < NUM_THREADS; ++i)
             {
-                break;
+                params[i] = {1, 1000*1000*100*i, 0};
+
+//                func(1000*1000*100*i);
+
+                if ( pthread_create( &threads[i], nullptr, thread_func, &params[i] ) )
+                {
+                    break;
+                }
             }
         }
 
-        for (i=0; i < NUM_THREADS; ++i)
+
+        for (size_t i=0; i < NUM_THREADS; ++i)
         {
             param* p_out;
             if ( pthread_join( threads[i], (void**)(&p_out)) )
@@ -75,8 +118,10 @@ namespace pthreads
                 break;
             }
 
-            cout << "result: " << p_out->ret_value << endl;
+            //cout << "result: " << p_out->ret_value << endl;
         }
+
+        pthread_mutex_destroy(&lock);
 
         return 0;
     }
@@ -132,7 +177,6 @@ namespace cpp_threads
         thread5.join();
         std::cout << a << '\n'; //Outputs 10
 
-
         // Create and execute the thread
         vector<std::thread> v_th;
 
@@ -152,7 +196,6 @@ namespace cpp_threads
 
         return 0;
     }
-
 }
 
 
@@ -163,11 +206,39 @@ namespace async
         return i*i;
     }
 
+    long long sum_N(unsigned long n)
+    {
+        long long result = 0;
+
+        for (unsigned long i = 0; i < n; ++i )
+        {
+            if (i%2==0)
+            {
+                result += i;
+            }
+        }
+
+        return result;
+    }
+
     int run()
     {
         auto f = std::async(std::launch::async, square, 8);
         std::cout << "square currently running\n"; //do something while square is running
         std::cout << "result is " << f.get() << '\n'; //getting the result from square
+
+        vector<future<long long>> futures;
+        for (size_t i=0; i < 10; ++i)
+        {
+            future<long long> f = std::async(std::launch::async, sum_N, 1000*1000*100*i);
+            futures.push_back(move(f));
+        }
+
+        while (futures.size()>0)
+        {
+            cout << "Result: " << futures.back().get() << endl;
+            futures.pop_back();
+        }
     }
 }
 
@@ -175,84 +246,106 @@ namespace consumer_producer {
 
     void run()
     {
-        std::condition_variable cond;
         std::mutex mtx;
-        std::queue<int> intq;
+        std::queue<int> intQueue;
         bool stopped = false;
 
         std::thread producer{[&]()
         {
             // Prepare a random number generator.
-            // Our producer will simply push random numbers to intq.
-            //
             std::default_random_engine gen{};
-            std::uniform_int_distribution<int> dist{};
+            std::uniform_int_distribution<int> dist{1, 100};
 
-            std::size_t count = 4006;
+            std::size_t count = 4096;
             while(count--)
             {
-                // Always lock before changing
-                // state guarded by a mutex and
-                // condition_variable (a.k.a. "condvar").
                 std::lock_guard<std::mutex> L{mtx};
-
-                // Push a random int into the queue
-                intq.push(dist(gen));
-
-                // Tell the consumer it has an int
-                cond.notify_one();
+                intQueue.push(dist(gen));
             }
 
-            // All done.
-            // Acquire the lock, set the stopped flag,
-            // then inform the consumer.
-            std::lock_guard<std::mutex> L{mtx};
-
             std::cout << "Producer is done!" << std::endl;
-
             stopped = true;
-            cond.notify_one();
         }};
 
         std::thread consumer{[&]()
         {
-            do{
+            while(true)
+            {
                 std::unique_lock<std::mutex> L{mtx};
-                cond.wait(L,[&]()
-                {
-                    // Acquire the lock only if
-                    // we've stopped or the queue
-                    // isn't empty
-                    return stopped || ! intq.empty();
-                });
 
-                // We own the mutex here; pop the queue
-                // until it empties out.
+                const auto val = intQueue.front();
+                intQueue.pop();
 
-                while( ! intq.empty())
-                {
-                    const auto val = intq.front();
-                    intq.pop();
-
-                    std::cout << "Consumer popped: " << val << std::endl;
-                }
+                std::cout << "Consumer popped: " << val << std::endl;
 
                 if(stopped){
                     // producer has signaled a stop
                     std::cout << "Consumer is done!" << std::endl;
                     break;
                 }
-
-            }while(true);
+            }
         }};
 
         consumer.join();
         producer.join();
 
-        std::cout << "Example Completed!" << std::endl;
+        std::cout << "Completed!" << std::endl;
     }
 }
 
+
+namespace consumer_producer_blocked {
+
+void run()
+{
+    std::condition_variable cond;
+    std::mutex mtx;
+    std::queue<int> intQueue;
+    bool stopped = false;
+
+    std::thread producer{[&]()
+    {
+        std::default_random_engine gen{};
+        std::uniform_int_distribution<int> dist{1, 100};
+
+        std::size_t count = 4096;
+        while(count--)
+        {
+            std::lock_guard<std::mutex> L{mtx};
+            intQueue.push(dist(gen));
+            cond.notify_one();
+        }
+
+        std::cout << "Producer is done!" << std::endl;
+        stopped = true;
+    }};
+
+    std::thread consumer{[&]()
+    {
+        while(!stopped)
+        {
+            std::unique_lock<std::mutex> lock{mtx};
+
+            while (intQueue.empty())
+            {
+                cond.wait(lock);
+            }
+
+            const auto val = intQueue.front();
+            intQueue.pop();
+            std::cout << "Consumer popped: " << val << std::endl;
+        }
+
+        std::cout << "Consumer is done!" << std::endl;
+    }};
+
+    consumer.join();
+    producer.join();
+
+    std::cout << "Example Completed!" << std::endl;
+}
+
+}
 
 int main ()
 {
@@ -260,6 +353,7 @@ int main ()
         using namespace pthreads;
         run();
     }
+
 
     {
         using namespace cpp_threads;
@@ -273,6 +367,11 @@ int main ()
 
     {
         using namespace consumer_producer;
+        run();
+    }
+
+    {
+        using namespace consumer_producer_blocked;
         run();
     }
 }
