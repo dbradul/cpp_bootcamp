@@ -931,6 +931,9 @@ int main()
         //  Absorb: Absorb errors in the bodies of destructors and deallocation operations.
         //  Translate: Translate an error (e.g., write a catch that does rethrow a different exception or emits another kind of error code) on layer boundaries.
         //  Propagate: In the rest of cases.
+
+        //  Fail fast: terminate loudly when don't know how to handle and there is no upper levels to report to.
+        //             Otherwise, the system will work into inconsistent state, which may disastrous consequences (corrupted data, incorrect work, etc).
     }
 
     cout << "PASSED" << endl;
