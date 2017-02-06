@@ -10,6 +10,8 @@
 #include <thread>
 #include <algorithm>
 #include <chrono>
+#include <ostream>
+#include <sstream>
 
 #include <cstdlib>
 #include <ctime>
@@ -40,11 +42,12 @@ namespace pthreads
     } param;
 
     pthread_mutex_t lock;
+    string out_result;
 
-//    static void wait_thread( void )
-//    {
-//        usleep(500*1000);
-//    }
+    static void wait_thread( void )
+    {
+        usleep(500);
+    }
 
     static long long sum_N( unsigned long n )
     {
@@ -56,10 +59,10 @@ namespace pthreads
             {
                 result += i;
             }
-            //wait_thread();
+
         }
 
-        cout << "Thread -1" << ": " << result << endl;
+        //cout << "Thread -1" << ": " << result << endl;
 
         return result;
     }
@@ -71,26 +74,59 @@ namespace pthreads
         p->ret_value = sum_N(p->n);
 
         //pthread_mutex_lock(&lock);
+        //wait_thread();
 
-        cout << "Thread " << pthread_self() << ": " << p->ret_value << endl;
+        ostringstream out_result;
+        out_result << "Thread ";
+        out_result << pthread_self();
+        out_result << ": " << p->ret_value;
+        out_result << "\n";
+
+        cout << out_result.str();
 
         //pthread_mutex_unlock(&lock);
 
         return p;
     }
 
+    static void* thread_func_2( void* vptr_args )
+    {
+        //wait_thread();
+
+        int* p = static_cast<int*>(vptr_args);
+
+        pthread_mutex_lock(&lock);
+
+
+
+        if (*p == 0)
+        {
+            out_result = "Hillary";
+            out_result += " ";
+            out_result += "Clinton";
+            out_result += "\n";
+        }
+        else
+        {
+            out_result = "Donald";
+            out_result += " ";
+            out_result += "Trump";
+            out_result += "\n";
+        }
+        cout << out_result << endl;
+
+
+        pthread_mutex_unlock(&lock);
+
+        return nullptr;
+    }
+
 
     int run()
     {
-        const int NUM_THREADS = 10;
+        const int NUM_THREADS = 100;
         pthread_t threads[NUM_THREADS];
         param params[NUM_THREADS];
-
-        if (pthread_mutex_init(&lock, NULL) != 0)
-        {
-            printf("\n mutex init failed\n");
-            return 1;
-        }
 
 
         {
@@ -98,11 +134,20 @@ namespace pthreads
 
             for (size_t i=0; i < NUM_THREADS; ++i)
             {
-                params[i] = {1, 1000*1000*100*i, 0};
+                params[i] = {1, 1000*1000*10*i, 0};
 
-//                func(1000*1000*100*i);
+                ////sum_N(1000*1000*10*i);
 
                 if ( pthread_create( &threads[i], nullptr, thread_func, &params[i] ) )
+                {
+                    break;
+                }
+            }
+
+            for (size_t i=0; i < NUM_THREADS; ++i)
+            {
+                param* p_out;
+                if ( pthread_join( threads[i], (void**)(&p_out)) )
                 {
                     break;
                 }
@@ -110,18 +155,33 @@ namespace pthreads
         }
 
 
-        for (size_t i=0; i < NUM_THREADS; ++i)
-        {
-            param* p_out;
-            if ( pthread_join( threads[i], (void**)(&p_out)) )
-            {
-                break;
-            }
+//        // race conditions
+//        {
+//            if (pthread_mutex_init(&lock, NULL) != 0)
+//            {
+//                printf("\n mutex init failed\n");
+//                return 1;
+//            }
 
-            //cout << "result: " << p_out->ret_value << endl;
-        }
+//            for (size_t i=0; i < NUM_THREADS; ++i)
+//            {
+//                int* param = new int(i%2);
+//                if ( pthread_create( &threads[i], nullptr, thread_func_2, param ) )
+//                {
+//                    break;
+//                }
+//            }
 
-        pthread_mutex_destroy(&lock);
+//            for (size_t i=0; i < NUM_THREADS; ++i)
+//            {
+//                if ( pthread_join( threads[i], nullptr) )
+//                {
+//                    break;
+//                }
+//            }
+
+//            pthread_mutex_destroy(&lock);
+//        }
 
         return 0;
     }
@@ -227,10 +287,12 @@ namespace async
         std::cout << "square currently running\n"; //do something while square is running
         std::cout << "result is " << f.get() << '\n'; //getting the result from square
 
+        profiler p;
+
         vector<future<long long>> futures;
-        for (size_t i=0; i < 10; ++i)
+        for (size_t i=0; i < 20; ++i)
         {
-            future<long long> f = std::async(std::launch::async, sum_N, 1000*1000*100*i);
+            future<long long> f = std::async(std::launch::async, sum_N, 1000*1000*10*i);
             futures.push_back(move(f));
         }
 
@@ -347,8 +409,122 @@ void run()
 
 }
 
+
+
+namespace deadlocks {
+
+
+std::mutex mutex_printer, mutex_HDD;
+
+void prepare()
+{
+    std::chrono::milliseconds timeout(100);
+    std::this_thread::sleep_for(timeout);
+}
+
+void task_a ()
+{
+    prepare();
+
+//    mutex_printer.lock();
+//    mutex_HDD.lock();
+    // replaced by:
+    std::lock (mutex_printer, mutex_HDD);
+
+    // print all files checksums to a printer
+    std::cout << "task a\n";
+
+    mutex_printer.unlock();
+    mutex_HDD.unlock();
+}
+
+void task_b ()
+{
+    prepare();
+
+//    mutex_printer.lock();
+//    mutex_HDD.lock();
+    // replaced by:
+    std::lock (mutex_HDD, mutex_printer);
+
+    // print all files checksums to a printer
+    std::cout << "task b\n";
+
+    mutex_printer.unlock();
+    mutex_HDD.unlock();
+}
+
+class Buffer
+{
+    std::mutex buff_lock;
+
+public:
+    void write()
+    {
+        std::lock_guard<std::mutex> lock(buff_lock);
+
+        //...
+        write_unsafe();
+        resize_unsafe();
+    }
+
+    void resize()
+    {
+        std::lock_guard<std::mutex> lock(buff_lock);
+
+        resize_unsafe();
+    }
+
+    void write_unsafe()
+    {
+
+        //...
+    }
+
+    void resize_unsafe()
+    {
+        //...
+    }
+
+
+};
+
+void run()
+{
+    // First job
+    // DVD/wifi/modem drivers from DVD/internet
+    // OS popularity depends on apps available, which depends on OS popularity
+    // Dining philosofers
+
+    // recursive_lock
+    // example with cycles
+    // how to solve
+
+    {
+        Buffer buff;
+
+        buff.write();
+    }
+
+    for(size_t i = 0; i<100; ++i)
+    {
+        std::thread th1 (task_a);
+        std::thread th2 (task_b);
+
+        th1.join();
+        th2.join();
+    }
+}
+
+}
+
 int main ()
 {
+
+//    unsigned int n = std::thread::hardware_concurrency();
+//    std::cout << n << " concurrent threads are supported.\n";
+
+
     {
         using namespace pthreads;
         run();
@@ -372,6 +548,14 @@ int main ()
 
     {
         using namespace consumer_producer_blocked;
+        run();
+    }
+
+    // Notes:
+    // https://bugreports.qt.io/browse/QTCREATORBUG-13791
+
+    {
+        using namespace deadlocks;
         run();
     }
 }
