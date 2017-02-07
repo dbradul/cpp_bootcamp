@@ -73,18 +73,22 @@ namespace pthreads
 
         p->ret_value = sum_N(p->n);
 
-        //pthread_mutex_lock(&lock);
+        pthread_mutex_lock(&lock);
         //wait_thread();
 
-        ostringstream out_result;
-        out_result << "Thread ";
-        out_result << pthread_self();
-        out_result << ": " << p->ret_value;
-        out_result << "\n";
+//        ostringstream out_result;
+//        out_result << "Thread ";
+//        out_result << pthread_self();
+//        out_result << ": " << p->ret_value;
+//        out_result << "\n";
+        cout << "Thread ";
+        cout << pthread_self();
+        cout << ": " << p->ret_value;
+        cout << endl;
 
-        cout << out_result.str();
+//        cout << out_result.str();
 
-        //pthread_mutex_unlock(&lock);
+        pthread_mutex_unlock(&lock);
 
         return p;
     }
@@ -95,7 +99,7 @@ namespace pthreads
 
         int* p = static_cast<int*>(vptr_args);
 
-        pthread_mutex_lock(&lock);
+//        pthread_mutex_lock(&lock);
 
 
 
@@ -116,7 +120,7 @@ namespace pthreads
         cout << out_result << endl;
 
 
-        pthread_mutex_unlock(&lock);
+//        pthread_mutex_unlock(&lock);
 
         return nullptr;
     }
@@ -124,10 +128,16 @@ namespace pthreads
 
     int run()
     {
-        const int NUM_THREADS = 100;
+        const int NUM_THREADS = 20;
         pthread_t threads[NUM_THREADS];
         param params[NUM_THREADS];
 
+
+        if (pthread_mutex_init(&lock, NULL) != 0)
+        {
+            printf("\n mutex init failed\n");
+            return 1;
+        }
 
         {
             profiler p;
@@ -157,11 +167,11 @@ namespace pthreads
 
 //        // race conditions
 //        {
-//            if (pthread_mutex_init(&lock, NULL) != 0)
-//            {
-//                printf("\n mutex init failed\n");
-//                return 1;
-//            }
+////            if (pthread_mutex_init(&lock, NULL) != 0)
+////            {
+////                printf("\n mutex init failed\n");
+////                return 1;
+////            }
 
 //            for (size_t i=0; i < NUM_THREADS; ++i)
 //            {
@@ -180,8 +190,9 @@ namespace pthreads
 //                }
 //            }
 
-//            pthread_mutex_destroy(&lock);
 //        }
+
+        pthread_mutex_destroy(&lock);
 
         return 0;
     }
@@ -218,8 +229,10 @@ namespace cpp_threads
 
     int run()
     {
-        std::thread thread(foo, 10);
-        thread.join();
+        int pInt = 42;
+        double d = 42.;
+//        std::thread thread(foo, 10, &pInt);
+//        thread.join();
 
         std::thread thread2(Bar(), 10);
         thread2.join();
@@ -321,8 +334,10 @@ namespace consumer_producer {
             std::size_t count = 4096;
             while(count--)
             {
-                std::lock_guard<std::mutex> L{mtx};
-                intQueue.push(dist(gen));
+                ////std::lock_guard<std::mutex> L{mtx};
+                int val = dist(gen);
+                intQueue.push(val);
+                std::cout << "Producer pushed: " << val << std::endl;
             }
 
             std::cout << "Producer is done!" << std::endl;
@@ -333,7 +348,7 @@ namespace consumer_producer {
         {
             while(true)
             {
-                std::unique_lock<std::mutex> L{mtx};
+                ///std::unique_lock<std::mutex> L{mtx};
 
                 const auto val = intQueue.front();
                 intQueue.pop();
@@ -375,18 +390,18 @@ void run()
         {
             std::lock_guard<std::mutex> L{mtx};
             intQueue.push(dist(gen));
-            cond.notify_one();
+            cond.notify_all();
         }
 
         std::cout << "Producer is done!" << std::endl;
         stopped = true;
     }};
 
-    std::thread consumer{[&]()
+    std::thread consumer([&]()
     {
         while(!stopped)
         {
-            std::unique_lock<std::mutex> lock{mtx};
+            std::unique_lock<std::mutex> lock(mtx);
 
             while (intQueue.empty())
             {
@@ -399,7 +414,7 @@ void run()
         }
 
         std::cout << "Consumer is done!" << std::endl;
-    }};
+    });
 
     consumer.join();
     producer.join();
@@ -426,10 +441,10 @@ void task_a ()
 {
     prepare();
 
-//    mutex_printer.lock();
-//    mutex_HDD.lock();
+    mutex_printer.lock();
+    mutex_HDD.lock();
     // replaced by:
-    std::lock (mutex_printer, mutex_HDD);
+//    std::lock (mutex_printer, mutex_HDD);
 
     // print all files checksums to a printer
     std::cout << "task a\n";
@@ -442,10 +457,10 @@ void task_b ()
 {
     prepare();
 
-//    mutex_printer.lock();
-//    mutex_HDD.lock();
+    mutex_printer.lock();
+    mutex_HDD.lock();
     // replaced by:
-    std::lock (mutex_HDD, mutex_printer);
+//    std::lock (mutex_HDD, mutex_printer);
 
     // print all files checksums to a printer
     std::cout << "task b\n";
@@ -459,32 +474,59 @@ class Buffer
     std::mutex buff_lock;
 
 public:
-    void write()
+//    void write()
+//    {
+//        std::lock_guard<std::mutex> lock(buff_lock);
+
+//        //...
+////        write_unsafe();
+//        is_full();
+//    }
+
+    int read()
     {
         std::lock_guard<std::mutex> lock(buff_lock);
 
-        //...
-        write_unsafe();
-        resize_unsafe();
+        return read_unsafe();
+//        if (is_empty())
+//        {
+//            throw out_of_range("Empty");
+//        }
+
+//        return 42;
     }
 
-    void resize()
+    int read_unsafe()
+    {
+        if (is_empty_unsafe())
+        {
+            throw out_of_range("Empty");
+        }
+
+        //.....
+
+        return 42;
+    }
+
+
+
+    bool is_empty()
     {
         std::lock_guard<std::mutex> lock(buff_lock);
 
-        resize_unsafe();
+        return is_empty_unsafe();
     }
 
-    void write_unsafe()
+
+    bool is_empty_unsafe()
     {
 
+        return false;
         //...
     }
 
-    void resize_unsafe()
-    {
-        //...
-    }
+
+
 
 
 };
@@ -500,20 +542,20 @@ void run()
     // example with cycles
     // how to solve
 
-    {
-        Buffer buff;
+//    {
+//        Buffer buff;
 
-        buff.write();
-    }
+//        buff.read();
+//    }
 
-    for(size_t i = 0; i<100; ++i)
-    {
-        std::thread th1 (task_a);
-        std::thread th2 (task_b);
+//    for(size_t i = 0; i<100; ++i)
+//    {
+//        std::thread th1 (task_a);
+//        std::thread th2 (task_b);
 
-        th1.join();
-        th2.join();
-    }
+//        th1.join();
+//        th2.join();
+//    }
 }
 
 }
@@ -525,31 +567,31 @@ int main ()
 //    std::cout << n << " concurrent threads are supported.\n";
 
 
-    {
-        using namespace pthreads;
-        run();
-    }
+//    {
+//        using namespace pthreads;
+//        run();
+//    }
 
 
-    {
-        using namespace cpp_threads;
-        run();
-    }
+//    {
+//        using namespace cpp_threads;
+//        run();
+//    }
 
-    {
-        using namespace async;
-        run();
-    }
+//    {
+//        using namespace async;
+//        run();
+//    }
 
     {
         using namespace consumer_producer;
         run();
     }
 
-    {
-        using namespace consumer_producer_blocked;
-        run();
-    }
+//    {
+//        using namespace consumer_producer_blocked;
+//        run();
+//    }
 
     // Notes:
     // https://bugreports.qt.io/browse/QTCREATORBUG-13791
