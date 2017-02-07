@@ -109,54 +109,10 @@ public:
 };
 
 
-
-struct Box
-{
-    int value;
-
-    Box()
-        : value(0)
-    {
-        cout << __PRETTY_FUNCTION__ << endl;
-    }
-
-    Box(int value_)
-        : value(value_)
-    {
-        cout << __PRETTY_FUNCTION__ << endl;
-    }
-
-    Box(const Box& obj)
-        : value(obj.value)
-    {
-        cout << __PRETTY_FUNCTION__ << endl;
-    }
-
-    Box(Box&& obj) noexcept
-        : value(move(obj.value))
-    {
-        cout << __PRETTY_FUNCTION__ << endl;
-    }
-
-    Box& operator=(const Box& obj)
-    {
-        cout << __PRETTY_FUNCTION__ << endl;
-        value = obj.value;
-        return *this;
-    }
-
-    ~Box()
-    {
-        cout << __PRETTY_FUNCTION__ << endl;
-    }
-};
-
-
 int main(int argc, char *argv[])
 {
 //    cout << sizeof(unsigned long long) << endl;
 //    return 0;
-
 
     const size_t N = 1024;
     RingBuffer<int, N> ringBuffer;
@@ -225,13 +181,6 @@ int main(int argc, char *argv[])
     }
 
     cout << "PASSED" << endl;
-
-
-    {
-        ///buffer = std::make_shared<std::array<char, 64>>();
-        auto ptr = make_shared<std::array<Box, 10>>();
-        //auto ptr = make_shared<Box>();
-    }
 
     return 0;
 }
