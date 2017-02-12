@@ -961,6 +961,20 @@ int main()
 ////                cout << *it << endl;
 ////            }
 
+////            {
+////                my::list<string> list;
+////                list.push_back("xxx");
+////                list.pop_back();
+////                list.push_back("first");
+////                list.push_back("second");
+
+////                list.reverse();
+
+////                assert(*(list.begin()) == "second");
+////                assert(*(list.end())   == "first");
+////                cout << "list: " << list << endl;
+////            }
+            
 ////            cout << *(dlist.rbegin()) << endl;
 ////            assert(dlist.back() ==*(dlist.rbegin()));
 
