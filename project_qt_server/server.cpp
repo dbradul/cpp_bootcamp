@@ -18,6 +18,11 @@ Server::Server(QObject *parent)
     }
 }
 
+Server::~Server()
+{
+    delete m_server;
+}
+
 void Server::newConnection()
 {
     qDebug() << "Connected (server)!";
@@ -25,7 +30,6 @@ void Server::newConnection()
     QTcpSocket *socket = m_server->nextPendingConnection();
 
     connect(socket, SIGNAL(readyRead()), this, SLOT(slotRead()));
-
 }
 
 void Server::slotRead()

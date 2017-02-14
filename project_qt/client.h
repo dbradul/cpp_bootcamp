@@ -9,6 +9,7 @@ class SimpleClient : public QObject
     Q_OBJECT
 public:
     explicit SimpleClient(QObject *parent = 0);
+    ~SimpleClient();
 
     void Connect();
 
