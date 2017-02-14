@@ -1,5 +1,5 @@
 #include <iostream>
-#include "client.h"
+#include "server.h"
 #include <QCoreApplication>
 
 
@@ -11,9 +11,7 @@ int main(int argc, char *argv[])
 
     QCoreApplication app(argc, argv);
 
-    SimpleClient c;
-
-    c.Connect();
+    Server s(&app);
 
     return app.exec();;
 }
