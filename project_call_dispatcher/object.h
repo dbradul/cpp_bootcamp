@@ -7,7 +7,7 @@
 class Object
 {
 public:
-    Object(CallDispatcher::Ptr dispatcher)
+    Object(CallDispatcher::Ptr& dispatcher)
         : m_dispatcher(dispatcher)
     {
     }

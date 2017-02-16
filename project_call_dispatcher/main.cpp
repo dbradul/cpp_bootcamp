@@ -27,12 +27,13 @@ private:
 
 public:
 
-    A(CallDispatcher::Ptr dispather)
-        : Object(dispather)
+    A(CallDispatcher::Ptr& dispatcher)
+        : Object(dispatcher)
     {
     }
 
 public /*slots*/:
+
     void onFoo()
     {
         cout << __PRETTY_FUNCTION__ << ": " << this << endl;
@@ -54,8 +55,8 @@ class B : public Object
 {
 
 public:
-    B(CallDispatcher::Ptr dispather)
-        : Object(dispather)
+    B(CallDispatcher::Ptr dispatcher)
+        : Object(dispatcher)
     {
     }
 
@@ -91,7 +92,7 @@ int main(int argc, char *argv[])
 
     d->connect(&b1, "foo", &a1, "onFoo");
 
-    // 1 signal => many slots (same object)
+    // 1 signal => many slots
     d->connect(&b1, "bar", &a1, "onBar");
     d->connect(&b1, "bar", &a1, "onBaz"); //names shouldn't nesseraly match
     d->connect(&b1, "bar", &a2, "onBar");
@@ -107,6 +108,9 @@ int main(int argc, char *argv[])
     b2.foo(); // <nothing>
     b2.bar(); // <nothing>
     b2.baz(); // a2.onBaz()
+
+    d->disconnect(&b1, "foo", &a1, "onFoo");
+    b1.foo(); // <nothing>
 
     return 0;
 }
