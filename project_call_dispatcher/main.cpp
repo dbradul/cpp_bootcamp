@@ -55,7 +55,7 @@ class B : public Object
 {
 
 public:
-    B(CallDispatcher::Ptr dispatcher)
+    B(CallDispatcher::Ptr& dispatcher)
         : Object(dispatcher)
     {
     }
