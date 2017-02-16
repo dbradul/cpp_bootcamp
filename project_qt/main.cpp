@@ -1,19 +1,31 @@
 #include <iostream>
-#include "client.h"
 #include <QCoreApplication>
 
+#include "client.h"
+#include "a.h"
+
+// Links:
+// - http://doc.qt.io/qt-5.6/signalsandslots.html#signals-and-slots
+// - http://wiki.qt.io/Threads_Events_QObjects
 
 using namespace std;
 
 int main(int argc, char *argv[])
 {
-    cout << "Enter!" << endl;
-
     QCoreApplication app(argc, argv);
 
-    SimpleClient c;
+    A a;
+    a.startTimer();
+    a.start();
 
+    SimpleClient c;
     c.Connect();
 
-    return app.exec();;
+    //    while(true)
+    //    {
+    //        Event ev = queue.front();
+    //        ev.handle();
+    //        queue.pop();
+    //    }
+    return app.exec();
 }

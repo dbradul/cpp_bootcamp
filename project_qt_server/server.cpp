@@ -5,8 +5,7 @@ Server::Server(QObject *parent)
     : QObject(parent)
     , m_server(new QTcpServer(this))
 {
-    connect(m_server, SIGNAL(newConnection()), this, SLOT(newConnection()));
-
+    connect(m_server, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
 
     if(!m_server->listen(QHostAddress::Any, 9999))
     {
@@ -23,16 +22,25 @@ Server::~Server()
     delete m_server;
 }
 
-void Server::newConnection()
+void Server::onNewConnection()
 {
     qDebug() << "Connected (server)!";
 
     QTcpSocket *socket = m_server->nextPendingConnection();
 
-    connect(socket, SIGNAL(readyRead()), this, SLOT(slotRead()));
+    connect(socket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
 }
 
-void Server::slotRead()
+void Server::onBytesWritten(qint64 bytes)
+{
+    qDebug() << "We wrote: " << bytes << " bytes";
+
+    QTcpSocket* socket = static_cast<QTcpSocket*>(sender());
+    socket->close();
+}
+
+
+void Server::onReadyRead()
 {
     QTcpSocket* socket = static_cast<QTcpSocket*>(sender());
 
@@ -40,6 +48,7 @@ void Server::slotRead()
     QString s_data = QString::fromUtf8(data.data());
 
     qDebug() << "Read: " << s_data << endl;
+    connect(socket, SIGNAL(bytesWritten(qint64)), this, SLOT(onBytesWritten(qint64)));
 
-    socket->close();
+    socket->write("Response from server!");
 }
