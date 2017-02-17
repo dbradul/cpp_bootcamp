@@ -5,6 +5,16 @@ Server::Server(QObject *parent)
     : QObject(parent)
     , m_server(new QTcpServer(this))
 {
+}
+
+
+Server::~Server()
+{
+    delete m_server;
+}
+
+void Server::start()
+{
     connect(m_server, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
 
     if(!m_server->listen(QHostAddress::Any, 9999))
@@ -15,11 +25,6 @@ Server::Server(QObject *parent)
     {
         qDebug() << "Server started!";
     }
-}
-
-Server::~Server()
-{
-    delete m_server;
 }
 
 void Server::onNewConnection()
@@ -51,4 +56,6 @@ void Server::onReadyRead()
     connect(socket, SIGNAL(bytesWritten(qint64)), this, SLOT(onBytesWritten(qint64)));
 
     socket->write("Response from server!");
+
+    emit dataRead(data.size());
 }

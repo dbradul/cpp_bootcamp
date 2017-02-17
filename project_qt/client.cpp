@@ -20,6 +20,12 @@ void SimpleClient::Connect()
     m_socket->connectToHost("127.0.0.1", 9999);
 }
 
+SimpleClient::setValue(int newValue)
+{
+    m_value = newValue;
+    emit valueSet(m_value);
+}
+
 void SimpleClient::onConnected()
 {
     qDebug() << "Connected (client)!";

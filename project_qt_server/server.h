@@ -13,8 +13,10 @@ public:
 
 signals:
     void runWorker( QTcpSocket *socket );
+    void dataRead(int);
 
 public slots:
+    void start();
     void onNewConnection();
     void onBytesWritten(qint64 bytes);
     void onReadyRead();

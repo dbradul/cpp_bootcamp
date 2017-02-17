@@ -13,7 +13,11 @@ public:
 
     void Connect();
 
+    setValue(int newValue);
+
 signals:
+
+    void valueSet(int);
 
 public slots:
 
@@ -23,6 +27,9 @@ public slots:
     void onReadyRead();
 
 private:
+
+    int m_value;
+
     QTcpSocket* m_socket;
 };
 
