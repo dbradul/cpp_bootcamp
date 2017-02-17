@@ -12,7 +12,6 @@ public:
     {
     }
 
-protected:
     virtual void dispatchMethod(const std::string& methodName){}
 
 protected:

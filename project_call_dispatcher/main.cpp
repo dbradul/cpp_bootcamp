@@ -9,7 +9,7 @@ using namespace std;
 class A : public Object
 {
 private:
-    virtual void dispatchMethod(const string& methodName)
+    void dispatchMethod(const string& methodName) override
     {
         if ("onFoo" == methodName)
         {
