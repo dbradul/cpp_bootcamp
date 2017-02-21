@@ -11,14 +11,17 @@ public:
     explicit A(QObject *parent = 0);
     ~A();
 
+    void foobar();
     void start();
     void startTimer();
 
 signals:
     void signal();
     void signal2();
+    void currentTS(quint64);
 
 public slots:
+    void onValueSet(int newValue);
     void onSignal();
     void onSignal2();
     void onTimer();
