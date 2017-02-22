@@ -6,11 +6,16 @@
 Client::Client(QObject *parent)
     : QObject(parent)
     , m_socket(new QTcpSocket(this))
+    , m_packetsTotal(0u)
+    , m_latencyTotal(0u)
+    , m_receivedTotal(0u)
+    , m_testStarted(0u)
 {
     connect(m_socket, SIGNAL(connected()),          this, SLOT(onConnected()));
     connect(m_socket, SIGNAL(disconnected()),       this, SLOT(onDisconnected()));
     connect(m_socket, SIGNAL(readyRead()),          this, SLOT(onReadyRead()));
     connect(m_socket, SIGNAL(bytesWritten(qint64)), this, SLOT(onBytesWritten(qint64)));
+    connect(m_socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(onError(QAbstractSocket::SocketError)));
 }
 
 Client::~Client()
@@ -34,6 +39,11 @@ void Client::onConnected()
     m_socket->write(reinterpret_cast<char*>(&p), sizeof(p));
 }
 
+void Client::onError(QAbstractSocket::SocketError err)
+{
+    qDebug() << __PRETTY_FUNCTION__ << ", error: " << err;
+}
+
 void Client::PreparePacket(Packet& p)
 {
     qDebug() << __PRETTY_FUNCTION__;
@@ -54,6 +64,7 @@ void Client::ParsePacket(Packet& p)
 
     while (read_bytes < sizeof(p))
     {
+        qDebug() << "Read bytes: " << read_bytes;
         read_bytes += m_socket->read(reinterpret_cast<char*>(&p) + read_bytes,
                                      sizeof(p) - read_bytes);
     }

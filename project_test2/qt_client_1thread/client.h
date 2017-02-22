@@ -40,6 +40,7 @@ public slots:
     void onDisconnected();
     void onBytesWritten(qint64 bytes);
     void onReadyRead();
+    void onError(QAbstractSocket::SocketError);
 
 private:
 
@@ -52,7 +53,7 @@ private:
     quint64 m_packetsTotal;
     quint64 m_latencyTotal;
     quint64 m_receivedTotal;
-    qint64 m_testStarted;
+    quint64 m_testStarted;
 };
 
 #endif // CLIENT_H
