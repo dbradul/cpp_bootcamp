@@ -1,0 +1,8 @@
+// lib
+g++ -c project_lib.cpp
+ar crf libproject.a project_lib_static.o //lib
+g++ project_lib.o -shared -fPIC -o libproject.so
+
+//use
+g++ -c main.cpp -I../../project_exe
+g++ main.o -L../../project_exe -llibproject_lib -o main.exe
