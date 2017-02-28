@@ -1,5 +1,6 @@
 #include <iostream>
 #include <typeinfo>
+#include <algorithm>
 
 #include "boost/lexical_cast.hpp"
 
@@ -12,6 +13,13 @@
 #include "boost/range/irange.hpp"
 #include "boost/range/combine.hpp"
 
+#include <boost/bimap.hpp>
+#include <boost/bimap/multiset_of.hpp>
+
+//#include <boost/coroutine2/all.hpp>
+//#include <boost/thread/thread.hpp>
+
+
 using namespace std;
 
 // Links:
@@ -20,6 +28,7 @@ using namespace std;
 // -- http://greek0.net/boost-range
 // -- http://knzsoft.blogspot.com/2013/07/boost-windows-mingw.html
 // -- http://stackoverflow.com/questions/38060436/what-are-the-new-features-in-c17
+
 
 
 struct Box
@@ -57,6 +66,18 @@ ostream& operator<< (ostream& os, const vector<T>& rhs)
     return os << " }";
 }
 
+namespace my_bimap
+{
+    template< class MapType >
+    void print_map(const MapType & map)
+    {
+        for( auto i = map.begin(); i != map.end(); ++i )
+        {
+            cout << i->first << " -> " << i->second << std::endl;
+        }
+    }
+}
+
 int main(int argc, char *argv[])
 {
     // LEXICAL_CAST
@@ -78,13 +99,16 @@ int main(int argc, char *argv[])
         // from string
         int x = boost::lexical_cast<int>("42");
         x = boost::lexical_cast<int>('5');
-        //x = boost::lexical_cast<int>("5.0");
+        x = boost::lexical_cast<double>("5.0");
         cout << x << endl;
     }
 
     // VARIANT
     {
-        union {int i; float f;} u;
+        union {
+            int i;
+            float f;
+        } u;
         u.f = 42.0;
         cout << u.i << endl;
 
@@ -119,6 +143,7 @@ int main(int argc, char *argv[])
         {
             cout << elem << endl;
         }
+
     }
 
     // ANY
@@ -223,11 +248,70 @@ int main(int argc, char *argv[])
 
             cout << "c: " << c << ", i: " << i << endl;
         }
+
     }
+
+    // BIMAP
+    {
+        using namespace boost::bimaps;
+        using namespace my_bimap;
+
+        boost::bimap<string, string> en_de;
+        en_de.insert({"Hi",         "Hallo"});
+        en_de.insert({"Hello",      "Hallo"});
+        en_de.insert({"Hi there",   "Hallo"});
+        en_de.insert({"German",     "Deutch"});
+        en_de.insert({"Yes",        "Ya"});
+
+        cout << "en_de.size(): " << en_de.size() << endl;
+
+        cout << "en_de.left: " << endl;
+        print_map(en_de.left);
+
+        cout << "en_de.right: " << endl;
+        print_map(en_de.right);
+
+        auto it1 = en_de.left.find("Hi");
+        auto it2 = en_de.right.find("Hallo");
+        std::cout << it1->first << " <=> " << it1->second << endl;
+        std::cout << it2->first << " <=> " << it2->second << endl;
+
+        // mutliset
+        boost::bimap<string, multiset_of<string>> en_de_2;
+        en_de_2.insert({"Hi",     "Hallo"});
+        en_de_2.insert({"Hello",  "Hallo"});
+        en_de_2.insert({"German", "Deutch"});
+        en_de_2.insert({"Yes",    "Ya"});
+
+        cout << "en_de_2.left: " << endl;
+        print_map(en_de_2.left);
+
+        cout << "en_de_2.right: " << endl;
+        print_map(en_de_2.right);
+
+        // counter
+        boost::bimap<string, multiset_of<size_t>> counter;
+        counter.insert({"Hi",     2});
+        counter.insert({"Hello",  3});
+        counter.insert({"German", 1});
+        counter.insert({"Yes",    2});
+
+        cout << "counter.left: " << endl;
+        print_map(counter.left);
+
+        cout << "counter.right: " << endl;
+        print_map(counter.right);
+    }
+
+//
+//        cout << "boost::this_thread: " << boost::this_thread::get_id() << endl;
+//    }
 
     // TOKENIZER
     // ASIO
     // COROUTINES
+    // PYTHON
+    //
 
     return 0;
 }
