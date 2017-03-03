@@ -22,7 +22,7 @@ public slots:
     void onStateChanged(QAbstractSocket::SocketState state);
 
 private:
-    QTcpSocket* m_socket;
+    QScopedPointer<QTcpSocket> m_socket;
 };
 
 #endif // LOOPBACKCONNECTION_H

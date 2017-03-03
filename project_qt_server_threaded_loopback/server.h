@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QTcpServer>
 
-class Server : public QObject
+class Server : public QTcpServer
 {
     Q_OBJECT
 public:
@@ -15,10 +15,9 @@ signals:
 
 public slots:
     void Start();
-    void onNewConnection();
 
-private:
-    QTcpServer* m_server;
+protected:
+    void incomingConnection(qintptr socketDescriptor) override;
 };
 
 #endif // SERVER_H
