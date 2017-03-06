@@ -4,9 +4,18 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 
-BOOSTDIR = /usr/local/include/boost
+win32 {
+#      BOOSTDIR = C:/...
+#      INCLUDEPATH += \
+#         $(BOOSTDIR)
+      #LIBS += -L...
+}
 
-INCLUDEPATH += \
-   $(BOOSTDIR)
+LIBS +=  -lboost_system \
+         -lboost_coroutine \
+         -lboost_timer \
+         -lboost_thread
+
+LIBS += -pthread
 
 SOURCES += main.cpp
