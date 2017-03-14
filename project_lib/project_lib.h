@@ -1,6 +1,9 @@
 #ifndef PROJECT_LIB_H
 #define PROJECT_LIB_H
 
+//int gVar = 42;
+
+
 class Project_lib
 {
 
