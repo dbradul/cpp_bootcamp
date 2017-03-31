@@ -3,7 +3,6 @@
 
 //int gVar = 42;
 
-
 class Project_lib
 {
 
@@ -11,6 +10,7 @@ public:
     Project_lib(){}
 
     int sum(int a, int b);
+ //   int sum2(float a, int b);
 };
 
 #endif // PROJECT_LIB_H

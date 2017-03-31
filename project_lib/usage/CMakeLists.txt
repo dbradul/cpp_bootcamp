@@ -7,8 +7,8 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 add_subdirectory(dir1)
 add_subdirectory(dir2)
 
-link_directories(../lib)
-include_directories(..)
+link_directories(../build2) #-L
+include_directories(..) # -I
 add_executable(${PROJECT_NAME} main.cpp)
 
 

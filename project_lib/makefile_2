@@ -1,0 +1,19 @@
+
+#<target>: <source>
+#	echo "Hello from Make"
+
+all: main
+
+clean:
+	rm -rf ./*.o main
+
+main.o: main.cpp
+	g++ --std=c++11 -c main.cpp
+
+project_lib.o: project_lib.cpp
+	g++ --std=c++11 -c project_lib.cpp
+
+main: main.o project_lib.o
+	g++ main.o project_lib.o -o main
+
+
